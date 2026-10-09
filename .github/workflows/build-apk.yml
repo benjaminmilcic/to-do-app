@@ -1,24 +1,19 @@
-# Builds the Android APK on a self-hosted Windows runner with Android Studio
-# and publishes it at https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
+# Builds the signed Android APK on a GitHub-hosted runner and publishes it at
+# https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
 #
 # Specific to benjamin-milcic.dev - adapt or delete this workflow when you host
-# the app yourself. Without a self-hosted runner it simply stays queued.
+# the app yourself.
 #
-# Runner: self-hosted, Windows, with Android Studio (JDK under
-#   C:\Program Files\Android\Android Studio\jbr), the Android SDK, Node.js 24
-#   and the Windows OpenSSH client (ssh, scp). Registered with the extra label
-#   `android`.
+# The runner image ships the Android SDK; JDK and Node.js are set up below.
+# The release keystore comes from a secret, so no local machine is involved.
 #
 # Required secrets:
 #   DEPLOY_SSH_KEY             private key of the `deploy` user
+#   ANDROID_KEYSTORE_BASE64    the release keystore (.jks), base64-encoded
 #   ANDROID_KEYSTORE_PASSWORD  password of the release keystore
 #   ANDROID_KEY_PASSWORD       password of the signing key
-# Required variables (Settings -> Variables):
-#   ANDROID_KEYSTORE_FILE      absolute path of the keystore on the runner
+# Required variable (Settings -> Variables):
 #   ANDROID_KEY_ALIAS          alias of the signing key
-#
-# Security: this workflow only runs for pushes to main and manual starts -
-# never for pull requests - so code from forks never reaches the runner.
 name: Build APK
 
 on:
@@ -41,72 +36,84 @@ env:
   DOWNLOAD_DIR: /var/www/todo-app/downloads
   APK_URL: https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
 
+defaults:
+  run:
+    working-directory: frontend
+
 jobs:
   apk:
-    if: github.event_name != 'pull_request'
-    runs-on: [self-hosted, windows, android]
-    # Windows PowerShell is always present. `bash` is not reliable on Windows:
-    # depending on PATH it resolves to WSL instead of Git Bash.
-    defaults:
-      run:
-        shell: powershell
-        working-directory: frontend
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Same major version as the JDK bundled with Android Studio.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: |
+            frontend/android/*.gradle*
+            frontend/android/**/gradle-wrapper.properties
+
       - name: Install
+        run: npm ci
+
+      - name: Restore keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          npm ci
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "Secret ANDROID_KEYSTORE_BASE64 is not set"; exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
 
       - name: Build APK
         env:
           APP_VERSION_CODE: ${{ github.run_number }}
           APP_VERSION_NAME: 1.0.${{ github.run_number }}
-          ANDROID_KEYSTORE_FILE: ${{ vars.ANDROID_KEYSTORE_FILE }}
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
           ANDROID_KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: npm run android:apk
+
+      # Fails the run if the APK is unsigned or signed with another key.
+      - name: Check signature
         run: |
-          if (-not $env:ANDROID_KEYSTORE_FILE -or -not (Test-Path $env:ANDROID_KEYSTORE_FILE)) {
-            Write-Error "Keystore not found - set the ANDROID_KEYSTORE_FILE variable"; exit 1
-          }
-          npm run android:apk
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify --print-certs dist-apk/todo-app.apk | tee signature.txt
+          grep -q "CN=Benjamin Milcic" signature.txt
 
       - name: Upload to server
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          # Windows PowerShell treats any stderr output of native tools as an
-          # error; rely on exit codes instead.
-          $ErrorActionPreference = 'Continue'
-          $key = Join-Path $env:RUNNER_TEMP 'deploy_key'
-          $known = Join-Path $env:RUNNER_TEMP 'known_hosts'
-          [IO.File]::WriteAllText($key, $env:SSH_KEY.Trim() + "`n")
-          # OpenSSH for Windows refuses keys that other accounts can read.
-          icacls $key /inheritance:r /grant:r "${env:USERNAME}:R" | Out-Null
-          # Pinned host key instead of ssh-keyscan: the keyscan of OpenSSH for
-          # Windows 9.x fails against OpenSSH 10 servers, and pinning is safer.
-          "$env:DEPLOY_HOST $env:DEPLOY_HOST_KEY" | Set-Content -Encoding ascii $known
-          $opts = @('-q', '-i', $key, '-o', "UserKnownHostsFile=$known", '-o', 'StrictHostKeyChecking=yes', '-o', 'LogLevel=ERROR')
-          $target = "$env:DEPLOY_USER@$env:DEPLOY_HOST"
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Pinned host key instead of trusting whatever ssh-keyscan returns.
+          echo "$DEPLOY_HOST $DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          target="$DEPLOY_USER@$DEPLOY_HOST"
 
           # Upload under a temporary name and rename, so a download never
           # gets a half-written file.
-          scp @opts dist-apk/todo-app.apk "${target}:$env:DOWNLOAD_DIR/todo-app.apk.tmp"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ssh @opts $target "chmod 644 $env:DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $env:DOWNLOAD_DIR/todo-app.apk.tmp $env:DOWNLOAD_DIR/todo-app.apk"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          scp -q dist-apk/todo-app.apk "$target:$DOWNLOAD_DIR/todo-app.apk.tmp"
+          ssh "$target" "chmod 644 $DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $DOWNLOAD_DIR/todo-app.apk.tmp $DOWNLOAD_DIR/todo-app.apk"
 
       - name: Verify
         run: |
-          $size = (Get-Item dist-apk/todo-app.apk).Length
-          $response = Invoke-WebRequest -UseBasicParsing -Method Head -TimeoutSec 20 "$($env:APK_URL)?r=$($env:GITHUB_RUN_ID)"
-          $live = [long]$response.Headers['Content-Length']
-          Write-Host "local=$size live=$live"
-          if ($size -ne $live) { Write-Error 'Download does not serve the new APK'; exit 1 }
+          size=$(stat -c %s dist-apk/todo-app.apk)
+          live=$(curl -sI --max-time 20 "$APK_URL?r=$GITHUB_RUN_ID" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
+          echo "local=$size live=$live"
+          [ "$size" = "$live" ] || { echo "Download does not serve the new APK"; exit 1; }
 
-      - name: Remove key
+      - name: Remove secrets from disk
         if: always()
-        run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'deploy_key'), (Join-Path $env:RUNNER_TEMP 'known_hosts')
+        run: rm -f "$RUNNER_TEMP/release.jks" ~/.ssh/id_ed25519
