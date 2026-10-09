@@ -6,7 +6,7 @@
 #
 # Runner: self-hosted, Windows, with Android Studio (JDK under
 #   C:\Program Files\Android\Android Studio\jbr), the Android SDK, Node.js 24
-#   and Git for Windows (bash, ssh, scp). Registered with the extra label
+#   and the Windows OpenSSH client (ssh, scp). Registered with the extra label
 #   `android`.
 #
 # Required secrets:
@@ -43,15 +43,19 @@ jobs:
   apk:
     if: github.event_name != 'pull_request'
     runs-on: [self-hosted, windows, android]
+    # Windows PowerShell is always present. `bash` is not reliable on Windows:
+    # depending on PATH it resolves to WSL instead of Git Bash.
     defaults:
       run:
-        shell: bash
+        shell: powershell
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build APK
         env:
@@ -62,37 +66,40 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -z "$ANDROID_KEYSTORE_FILE" ] || [ ! -f "$ANDROID_KEYSTORE_FILE" ]; then
-            echo "Keystore not found - set the ANDROID_KEYSTORE_FILE variable"; exit 1
-          fi
+          if (-not $env:ANDROID_KEYSTORE_FILE -or -not (Test-Path $env:ANDROID_KEYSTORE_FILE)) {
+            Write-Error "Keystore not found - set the ANDROID_KEYSTORE_FILE variable"; exit 1
+          }
           npm run android:apk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload to server
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          key="$RUNNER_TEMP/deploy_key"
-          known="$RUNNER_TEMP/known_hosts"
-          printf '%s\n' "$SSH_KEY" > "$key"
-          chmod 600 "$key"
-          ssh-keyscan -H "$DEPLOY_HOST" > "$known" 2>/dev/null
-          opts=(-i "$key" -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes)
+          $key = Join-Path $env:RUNNER_TEMP 'deploy_key'
+          $known = Join-Path $env:RUNNER_TEMP 'known_hosts'
+          [IO.File]::WriteAllText($key, $env:SSH_KEY.Trim() + "`n")
+          # OpenSSH for Windows refuses keys that other accounts can read.
+          icacls $key /inheritance:r /grant:r "${env:USERNAME}:R" | Out-Null
+          ssh-keyscan -H $env:DEPLOY_HOST 2>$null | Set-Content -Encoding ascii $known
+          $opts = @('-i', $key, '-o', "UserKnownHostsFile=$known", '-o', 'StrictHostKeyChecking=yes')
+          $target = "$env:DEPLOY_USER@$env:DEPLOY_HOST"
 
           # Upload under a temporary name and rename, so a download never
           # gets a half-written file.
-          scp "${opts[@]}" dist-apk/todo-app.apk \
-            "$DEPLOY_USER@$DEPLOY_HOST:$DOWNLOAD_DIR/todo-app.apk.tmp"
-          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
-            "chmod 644 $DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $DOWNLOAD_DIR/todo-app.apk.tmp $DOWNLOAD_DIR/todo-app.apk"
-          rm -f "$key" "$known"
+          scp @opts dist-apk/todo-app.apk "${target}:$env:DOWNLOAD_DIR/todo-app.apk.tmp"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ssh @opts $target "chmod 644 $env:DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $env:DOWNLOAD_DIR/todo-app.apk.tmp $env:DOWNLOAD_DIR/todo-app.apk"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify
         run: |
-          size=$(stat -c %s dist-apk/todo-app.apk)
-          live=$(curl -sI --max-time 20 "$APK_URL?r=$GITHUB_RUN_ID" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-          echo "local=$size live=$live"
-          [ "$size" = "$live" ] || { echo "Download does not serve the new APK"; exit 1; }
+          $size = (Get-Item dist-apk/todo-app.apk).Length
+          $response = Invoke-WebRequest -UseBasicParsing -Method Head -TimeoutSec 20 "$($env:APK_URL)?r=$($env:GITHUB_RUN_ID)"
+          $live = [long]$response.Headers['Content-Length']
+          Write-Host "local=$size live=$live"
+          if ($size -ne $live) { Write-Error 'Download does not serve the new APK'; exit 1 }
 
-      - name: Remove key on failure
+      - name: Remove key
         if: always()
-        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
+        run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'deploy_key'), (Join-Path $env:RUNNER_TEMP 'known_hosts')
