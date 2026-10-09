@@ -1,0 +1,5 @@
+# Files executed or parsed on Linux must keep LF line endings.
+*.sh            text eol=lf
+deploy/**       text eol=lf
+frontend/android/gradlew text eol=lf
+.github/**      text eol=lf
