@@ -36,6 +36,8 @@ concurrency:
 env:
   DEPLOY_HOST: 212.227.31.144
   DEPLOY_USER: deploy
+  # SHA256:BlrTpwjVYl8eVYCc42TiVZ8b6+CfkDdSXHJY1Lb2+Sw
+  DEPLOY_HOST_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJochYl1GIdPP5/AI52kDXBFd5d3ludjEotSaOhqtLXO
   DOWNLOAD_DIR: /var/www/todo-app/downloads
   APK_URL: https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
 
@@ -84,8 +86,9 @@ jobs:
           [IO.File]::WriteAllText($key, $env:SSH_KEY.Trim() + "`n")
           # OpenSSH for Windows refuses keys that other accounts can read.
           icacls $key /inheritance:r /grant:r "${env:USERNAME}:R" | Out-Null
-          cmd /c "ssh-keyscan -H $env:DEPLOY_HOST 2>nul" | Set-Content -Encoding ascii $known
-          if (-not (Get-Content $known)) { Write-Error 'ssh-keyscan returned no host key'; exit 1 }
+          # Pinned host key instead of ssh-keyscan: the keyscan of OpenSSH for
+          # Windows 9.x fails against OpenSSH 10 servers, and pinning is safer.
+          "$env:DEPLOY_HOST $env:DEPLOY_HOST_KEY" | Set-Content -Encoding ascii $known
           $opts = @('-q', '-i', $key, '-o', "UserKnownHostsFile=$known", '-o', 'StrictHostKeyChecking=yes', '-o', 'LogLevel=ERROR')
           $target = "$env:DEPLOY_USER@$env:DEPLOY_HOST"
 
