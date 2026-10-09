@@ -76,8 +76,13 @@ jobs:
           $RSYNC "$SSH" --delete node_modules/ "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR/node_modules/"
           $RSYNC "$SSH"          package.json  "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR/"
 
+      # reset-failed clears the start limit after a crash loop of a previous
+      # (broken) version; otherwise the fixed version could not be started.
+      # -n: fail instead of prompting if the sudoers rule is missing.
       - name: Restart service
-        run: ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" "sudo systemctl restart $SERVICE"
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" \
+            "sudo -n systemctl reset-failed $SERVICE || true; sudo -n systemctl restart $SERVICE"
 
       # Database migrations run on startup, so a healthy /api/health also
       # means the schema is up to date and the database is reachable.
