@@ -76,13 +76,17 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
+          # Windows PowerShell treats any stderr output of native tools as an
+          # error; rely on exit codes instead.
+          $ErrorActionPreference = 'Continue'
           $key = Join-Path $env:RUNNER_TEMP 'deploy_key'
           $known = Join-Path $env:RUNNER_TEMP 'known_hosts'
           [IO.File]::WriteAllText($key, $env:SSH_KEY.Trim() + "`n")
           # OpenSSH for Windows refuses keys that other accounts can read.
           icacls $key /inheritance:r /grant:r "${env:USERNAME}:R" | Out-Null
-          ssh-keyscan -H $env:DEPLOY_HOST 2>$null | Set-Content -Encoding ascii $known
-          $opts = @('-i', $key, '-o', "UserKnownHostsFile=$known", '-o', 'StrictHostKeyChecking=yes')
+          cmd /c "ssh-keyscan -H $env:DEPLOY_HOST 2>nul" | Set-Content -Encoding ascii $known
+          if (-not (Get-Content $known)) { Write-Error 'ssh-keyscan returned no host key'; exit 1 }
+          $opts = @('-q', '-i', $key, '-o', "UserKnownHostsFile=$known", '-o', 'StrictHostKeyChecking=yes', '-o', 'LogLevel=ERROR')
           $target = "$env:DEPLOY_USER@$env:DEPLOY_HOST"
 
           # Upload under a temporary name and rename, so a download never
