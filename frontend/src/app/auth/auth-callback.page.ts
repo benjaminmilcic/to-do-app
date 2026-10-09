@@ -13,8 +13,8 @@ import { errorMessage } from '../shared/error-message';
   template: `
     <ion-content class="ion-padding">
       <div class="center">
-        @if (error(); as message) {
-          <p>{{ message }}</p>
+        @if (message(); as text) {
+          <p>{{ text }}</p>
           <ion-button routerLink="/login" [replaceUrl]="true">
             Zurück zur Anmeldung
           </ion-button>
@@ -44,21 +44,21 @@ export class AuthCallbackPage implements OnInit {
 
   // Bound from the query string (withComponentInputBinding).
   readonly code = input<string>();
-  readonly errorParam = input<string>(undefined, { alias: 'error' });
+  readonly error = input<string>();
 
-  protected readonly error = signal<string | null>(null);
+  protected readonly message = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     const code = this.code();
-    if (this.errorParam() || !code) {
-      this.error.set('Die Anmeldung mit Google wurde abgebrochen.');
+    if (this.error() || !code) {
+      this.message.set('Die Anmeldung mit Google wurde abgebrochen.');
       return;
     }
     try {
       await this.auth.completeGoogleLogin(code);
       await this.router.navigateByUrl('/', { replaceUrl: true });
     } catch (error) {
-      this.error.set(errorMessage(error, 'Die Anmeldung ist fehlgeschlagen.'));
+      this.message.set(errorMessage(error, 'Die Anmeldung ist fehlgeschlagen.'));
     }
   }
 }

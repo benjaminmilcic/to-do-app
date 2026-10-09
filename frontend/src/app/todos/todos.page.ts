@@ -51,7 +51,7 @@ import type { Todo } from '../core/api';
 import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
 import { SyncService } from '../core/sync.service';
-import { TodoEditModal, type EditResult } from './todo-edit.modal';
+import { TodoEditComponent, type EditResult } from './todo-edit.component';
 import { TodoStore } from './todo.store';
 
 type Filter = 'open' | 'done';
@@ -173,7 +173,7 @@ export class TodosPage {
 
   protected async edit(todo: Todo): Promise<void> {
     const modal = await this.modals.create({
-      component: TodoEditModal,
+      component: TodoEditComponent,
       componentProps: { todo },
     });
     await modal.present();

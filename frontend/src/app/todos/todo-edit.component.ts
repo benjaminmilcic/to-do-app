@@ -100,7 +100,7 @@ export type EditResult =
     IonToolbar,
   ],
 })
-export class TodoEditModal implements OnInit {
+export class TodoEditComponent implements OnInit {
   private readonly modal = inject(ModalController);
 
   /** Set through ModalController componentProps. */
