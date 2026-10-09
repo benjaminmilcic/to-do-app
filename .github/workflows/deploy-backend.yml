@@ -1,0 +1,93 @@
+# Builds the NestJS backend and deploys it to the server.
+#
+# Specific to benjamin-milcic.dev - adapt DEPLOY_HOST, paths, the service name
+# and the URL, or delete this workflow when you host the app yourself.
+#
+# Required secret: DEPLOY_SSH_KEY (private key of the `deploy` user)
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+env:
+  DEPLOY_HOST: 212.227.31.144
+  DEPLOY_USER: deploy
+  TARGET_DIR: /opt/todo-app-api
+  SERVICE: todo-app-api
+  HEALTH_URL: https://todo-app.benjamin-milcic.dev/api/health
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # must match the server
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Keep production dependencies only
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev
+
+      - name: Prepare SSH
+        working-directory: .
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      # Files are owned by deploy and readable only for the service's group
+      # (the setgid target directory hands them the group `todoapp`).
+      - name: Upload
+        run: |
+          SSH="ssh -i ~/.ssh/id_ed25519"
+          RSYNC="rsync -rltz --perms --chmod=D750,F640 -e"
+          $RSYNC "$SSH" --delete dist/         "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR/dist/"
+          $RSYNC "$SSH" --delete node_modules/ "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR/node_modules/"
+          $RSYNC "$SSH"          package.json  "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR/"
+
+      - name: Restart service
+        run: ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" "sudo systemctl restart $SERVICE"
+
+      # Database migrations run on startup, so a healthy /api/health also
+      # means the schema is up to date and the database is reachable.
+      - name: Health check
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$HEALTH_URL" || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "Backend healthy (HTTP 200)"; exit 0
+            fi
+            echo "Attempt $i: HTTP $code, waiting..."; sleep 4
+          done
+          echo "Backend did not come up."
+          ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" \
+            "SYSTEMD_PAGER= sudo systemctl status $SERVICE" || true
+          exit 1

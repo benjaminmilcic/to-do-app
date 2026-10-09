@@ -1,0 +1,121 @@
+# Builds the PWA and deploys it to the server.
+#
+# Specific to benjamin-milcic.dev - adapt DEPLOY_HOST, paths and URLs, or
+# delete this workflow when you host the app yourself.
+#
+# Required secrets:
+#   DEPLOY_SSH_KEY          private key of the `deploy` user
+#   CLOUDFLARE_ZONE_ID      zone of benjamin-milcic.dev
+#   CLOUDFLARE_PURGE_TOKEN  API token with "Cache Purge" permission
+name: Deploy frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '!frontend/android/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
+env:
+  DEPLOY_HOST: 212.227.31.144
+  DEPLOY_USER: deploy
+  TARGET_DIR: /var/www/todo-app/frontend/
+  SITE_URL: https://todo-app.benjamin-milcic.dev
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Lets the verification step below (and anyone else) check exactly which
+      # commit is live.
+      - name: Write build info
+        run: |
+          printf '{"sha":"%s","run":"%s","built":"%s"}\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > www/build-info.json
+
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload
+        run: |
+          rsync -rltz --perms --chmod=D755,F644 --delete \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            www/ "$DEPLOY_USER@$DEPLOY_HOST:$TARGET_DIR"
+
+      # Unhashed files are cached for a long time at the Cloudflare edge
+      # (s-maxage, see the Apache vHost). Purge exactly those, derived from the
+      # build output with the same "hashed" pattern the vHost uses - so nothing
+      # can be forgotten and the main site's cache stays untouched.
+      - name: Purge Cloudflare cache
+        run: |
+          {
+            echo "$SITE_URL/"
+            find www -type f -printf '%P\n' \
+              | grep -vP -- '-[A-Za-z0-9_-]{8}\.(js|css|mjs|woff2?)$' \
+              | sed "s|^|$SITE_URL/|"
+          } > purge-urls.txt
+          echo "$(wc -l < purge-urls.txt) URLs to purge"
+
+          split -l 30 purge-urls.txt purge-chunk-
+          for chunk in purge-chunk-*; do
+            body=$(jq -R . "$chunk" | jq -s '{files: .}')
+            resp=$(curl -sS -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              --data "$body")
+            echo "$resp" | jq -c '{success, errors}'
+            echo "$resp" | jq -e '.success' > /dev/null \
+              || { echo "Purge failed - the edge may serve stale files"; exit 1; }
+          done
+
+      - name: Verify
+        run: |
+          echo "Expecting sha=$GITHUB_SHA"
+          for i in $(seq 1 10); do
+            live=$(curl -sS --max-time 15 "$SITE_URL/build-info.json?r=$GITHUB_RUN_ID" || true)
+            echo "Attempt $i: $live"
+            if printf '%s' "$live" | grep -q "\"sha\":\"$GITHUB_SHA\""; then
+              for path in / /login /manifest.webmanifest; do
+                code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL$path")
+                [ "$code" = "200" ] || { echo "$path answers HTTP $code"; exit 1; }
+              done
+              # A missing bundle must be a 404, not the SPA fallback.
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$SITE_URL/does-not-exist-12345678.js")
+              [ "$code" = "404" ] || { echo "Missing file answers HTTP $code instead of 404"; exit 1; }
+              echo "Deploy verified: $GITHUB_SHA is live."
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "build-info.json does not report $GITHUB_SHA"
+          exit 1

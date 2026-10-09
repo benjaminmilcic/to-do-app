@@ -1,0 +1,102 @@
+<ion-content class="auth-content">
+  <main class="auth-shell">
+    <header class="brand">
+      <img src="assets/icon/logo.svg" alt="" width="72" height="72" />
+      <h1>ToDo</h1>
+      <p>Deine Aufgaben. Auf allen Geräten. Sofort synchron.</p>
+    </header>
+
+    <section class="card">
+      <ion-segment
+        [value]="mode()"
+        (ionChange)="setMode($event.detail.value)"
+      >
+        <ion-segment-button value="login">
+          <ion-label>Anmelden</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="register">
+          <ion-label>Registrieren</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <form (ngSubmit)="submit()" #form="ngForm">
+        @if (mode() === 'register') {
+          <ion-input
+            label="Name (optional)"
+            labelPlacement="floating"
+            fill="outline"
+            name="displayName"
+            autocomplete="name"
+            maxlength="100"
+            [(ngModel)]="displayName"
+          />
+        }
+
+        <ion-input
+          label="E-Mail"
+          labelPlacement="floating"
+          fill="outline"
+          type="email"
+          name="email"
+          autocomplete="email"
+          inputmode="email"
+          required
+          [(ngModel)]="email"
+        />
+
+        <ion-input
+          label="Passwort"
+          labelPlacement="floating"
+          fill="outline"
+          type="password"
+          name="password"
+          required
+          [minlength]="mode() === 'register' ? 8 : 1"
+          [autocomplete]="mode() === 'register' ? 'new-password' : 'current-password'"
+          [helperText]="mode() === 'register' ? 'Mindestens 8 Zeichen' : ''"
+          [(ngModel)]="password"
+        >
+          <ion-input-password-toggle slot="end" />
+        </ion-input>
+
+        @if (error(); as message) {
+          <ion-text color="danger" class="error" role="alert">{{ message }}</ion-text>
+        }
+
+        <ion-button
+          type="submit"
+          expand="block"
+          size="large"
+          [disabled]="busy() || form.invalid"
+        >
+          @if (busy()) {
+            <ion-spinner name="dots" />
+          } @else {
+            {{ mode() === 'login' ? 'Anmelden' : 'Konto erstellen' }}
+          }
+        </ion-button>
+      </form>
+
+      @if (clientConfig.config().googleLogin) {
+        <div class="divider"><span>oder</span></div>
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="medium"
+          class="google"
+          (click)="google()"
+        >
+          <ion-icon slot="start" name="logo-google" />
+          Mit Google fortfahren
+        </ion-button>
+      }
+    </section>
+
+    @if (clientConfig.apkDownloadUrl; as apk) {
+      <a class="apk-link" [href]="apk" download>
+        <ion-icon name="download-outline" />
+        Android-App herunterladen
+      </a>
+    }
+  </main>
+</ion-content>

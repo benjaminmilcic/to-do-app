@@ -1,0 +1,176 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>
+      <span class="title">Aufgaben</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <span
+        class="sync-dot"
+        [class.online]="sync.status() === 'online'"
+        [class.connecting]="sync.status() === 'connecting'"
+        [attr.title]="
+          sync.status() === 'online'
+            ? 'Synchronisiert'
+            : sync.status() === 'connecting'
+              ? 'Verbinde …'
+              : 'Offline'
+        "
+      ></span>
+      <ion-button id="account-trigger" aria-label="Konto">
+        <ion-avatar slot="icon-only" class="avatar">
+          @if (auth.user()?.avatarUrl; as url) {
+            <img [src]="url" alt="" referrerpolicy="no-referrer" />
+          } @else {
+            <span>{{ initials() }}</span>
+          }
+        </ion-avatar>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-popover #accountPopover trigger="account-trigger" triggerAction="click">
+  <ng-template>
+    <ion-list lines="none" class="account">
+      <ion-item>
+        <ion-label>
+          <h2>{{ auth.user()?.displayName }}</h2>
+          <p>{{ auth.user()?.email }}</p>
+        </ion-label>
+      </ion-item>
+      @if (clientConfig.apkDownloadUrl; as apk) {
+        <ion-item [href]="apk" download detail="false">
+          <ion-icon slot="start" name="download-outline" />
+          <ion-label>Android-App (APK)</ion-label>
+        </ion-item>
+      }
+      <ion-item button detail="false" (click)="logout(accountPopover)">
+        <ion-icon slot="start" name="log-out-outline" color="danger" />
+        <ion-label color="danger">Abmelden</ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  <main class="page">
+    <form class="composer" (ngSubmit)="addTodo()">
+      <input
+        name="title"
+        [(ngModel)]="newTitle"
+        placeholder="Neue Aufgabe …"
+        maxlength="500"
+        autocomplete="off"
+        enterkeyhint="done"
+        aria-label="Neue Aufgabe"
+      />
+      <ion-button
+        type="submit"
+        shape="round"
+        [disabled]="!newTitle.trim()"
+        aria-label="Hinzufügen"
+      >
+        <ion-icon slot="icon-only" name="add" />
+      </ion-button>
+    </form>
+
+    <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)">
+      <ion-segment-button value="open">
+        <ion-label>Offen · {{ store.open().length }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="done">
+        <ion-label>Erledigt · {{ store.done().length }}</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    @if (sync.status() === 'offline' && store.loaded()) {
+      <p class="offline-hint">
+        <ion-icon name="cloud-offline-outline" />
+        Offline – Änderungen anderer Geräte erscheinen, sobald die Verbindung zurück ist.
+      </p>
+    }
+
+    @if (visible().length === 0) {
+      <section class="empty">
+        @if (!store.loaded() && store.loading()) {
+          <p>Lade Aufgaben …</p>
+        } @else if (filter() === 'open') {
+          <ion-icon name="checkmark-done-outline" />
+          <h2>Alles erledigt</h2>
+          <p>Trag oben eine neue Aufgabe ein.</p>
+        } @else {
+          <ion-icon name="checkmark-done-outline" />
+          <h2>Noch nichts erledigt</h2>
+          <p>Abgehakte Aufgaben landen hier.</p>
+        }
+      </section>
+    } @else {
+      <ion-list class="todo-list" lines="none">
+        <ion-reorder-group
+          [disabled]="filter() !== 'open'"
+          (ionItemReorder)="reorder($event)"
+        >
+          @for (todo of visible(); track todo.id) {
+            <ion-item-sliding #sliding>
+              <ion-item class="todo" [class.done]="todo.done">
+                <ion-checkbox
+                  slot="start"
+                  [checked]="todo.done"
+                  (ionChange)="toggle(todo)"
+                  [attr.aria-label]="todo.done ? 'Als offen markieren' : 'Als erledigt markieren'"
+                />
+                <ion-label class="todo-text" (click)="edit(todo)">
+                  <span class="todo-title">{{ todo.title }}</span>
+                  @if (todo.dueDate || todo.notes) {
+                    <span class="meta">
+                      @if (todo.dueDate) {
+                        <span
+                          class="chip"
+                          [class.overdue]="!todo.done && todo.dueDate < today"
+                          [class.today]="!todo.done && todo.dueDate === today"
+                        >
+                          <ion-icon name="calendar-outline" />
+                          {{ todo.dueDate | date: 'EE, d. MMM' }}
+                        </span>
+                      }
+                      @if (todo.notes) {
+                        <span class="chip">
+                          <ion-icon name="document-text-outline" />
+                          Notiz
+                        </span>
+                      }
+                    </span>
+                  }
+                </ion-label>
+                @if (filter() === 'open') {
+                  <ion-reorder slot="end" />
+                }
+              </ion-item>
+              <ion-item-options side="end">
+                <ion-item-option color="danger" expandable (click)="remove(todo, sliding)">
+                  <ion-icon slot="icon-only" name="trash-outline" />
+                </ion-item-option>
+              </ion-item-options>
+            </ion-item-sliding>
+          }
+        </ion-reorder-group>
+      </ion-list>
+
+      @if (filter() === 'done') {
+        <ion-button
+          class="clear-done"
+          fill="clear"
+          color="danger"
+          expand="block"
+          (click)="clearCompleted()"
+        >
+          Erledigte löschen
+        </ion-button>
+      }
+    }
+  </main>
+</ion-content>

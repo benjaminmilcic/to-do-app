@@ -1,0 +1,83 @@
+.auth-content {
+  --background: var(--app-backdrop);
+}
+
+.auth-shell {
+  min-height: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: calc(var(--ion-safe-area-top, 0px) + 48px) 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.brand {
+  text-align: center;
+
+  img {
+    filter: drop-shadow(0 12px 24px rgb(79 70 229 / 35%));
+  }
+
+  h1 {
+    margin: 16px 0 4px;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+  }
+}
+
+.card {
+  background: var(--app-surface);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: var(--app-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.error {
+  font-size: 0.9rem;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ion-color-step-150, rgb(0 0 0 / 12%));
+  }
+}
+
+.google {
+  --color: var(--ion-text-color);
+}
+
+.apk-link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}

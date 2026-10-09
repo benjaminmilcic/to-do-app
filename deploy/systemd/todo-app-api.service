@@ -1,0 +1,40 @@
+# systemd unit for the ToDo app backend.
+#
+# Install as /etc/systemd/system/todo-app-api.service, then:
+#   systemctl daemon-reload && systemctl enable --now todo-app-api
+#
+# Code is owned by the deploy user, the process runs as the unprivileged
+# `todoapp` user and can only read it.
+
+[Unit]
+Description=ToDo app API (NestJS)
+After=network-online.target mysql.service
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=todoapp
+Group=todoapp
+WorkingDirectory=/opt/todo-app-api
+EnvironmentFile=/etc/todo-app/todo-app.env
+ExecStart=/usr/bin/node dist/main.js
+Restart=always
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,45 @@
+// App theme. Brand colours match the app icon (indigo -> violet).
+// https://ionicframework.com/docs/theming/
+
+:root {
+  --ion-font-family: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
+
+  --ion-color-primary: #5146e5;
+  --ion-color-primary-rgb: 81, 70, 229;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #473ec9;
+  --ion-color-primary-tint: #6259e8;
+
+  --ion-color-success: #16a36a;
+  --ion-color-success-rgb: 22, 163, 106;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #13905d;
+  --ion-color-success-tint: #2dac79;
+
+  --app-brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --app-backdrop: #f3f2fb;
+  --app-surface: #ffffff;
+  --app-chip: #efeef6;
+  --app-shadow: 0 1px 2px rgb(30 27 75 / 6%), 0 8px 24px rgb(30 27 75 / 8%);
+  --app-shadow-sm: 0 1px 2px rgb(30 27 75 / 6%), 0 2px 8px rgb(30 27 75 / 5%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary: #8b85ff;
+    --ion-color-primary-rgb: 139, 133, 255;
+    --ion-color-primary-contrast: #0f0e1a;
+    --ion-color-primary-contrast-rgb: 15, 14, 26;
+    --ion-color-primary-shade: #7a75e0;
+    --ion-color-primary-tint: #9791ff;
+
+    --app-backdrop: #0f0e17;
+    --app-surface: #1b1a26;
+    --app-chip: #2a2938;
+    --app-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 30%);
+    --app-shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  }
+}

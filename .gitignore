@@ -1,0 +1,35 @@
+# Dependencies and build output
+node_modules/
+dist/
+www/
+dist-apk/
+.angular/
+coverage/
+*.tsbuildinfo
+
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+*.keystore
+*.jks
+keystore.properties
+
+# Android build output (the project itself is committed)
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/app/release/
+*.apk
+*.aab
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log

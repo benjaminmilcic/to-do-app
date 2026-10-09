@@ -1,0 +1,98 @@
+# Builds the Android APK on a self-hosted Windows runner with Android Studio
+# and publishes it at https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
+#
+# Specific to benjamin-milcic.dev - adapt or delete this workflow when you host
+# the app yourself. Without a self-hosted runner it simply stays queued.
+#
+# Runner: self-hosted, Windows, with Android Studio (JDK under
+#   C:\Program Files\Android\Android Studio\jbr), the Android SDK, Node.js 24
+#   and Git for Windows (bash, ssh, scp). Registered with the extra label
+#   `android`.
+#
+# Required secrets:
+#   DEPLOY_SSH_KEY             private key of the `deploy` user
+#   ANDROID_KEYSTORE_PASSWORD  password of the release keystore
+#   ANDROID_KEY_PASSWORD       password of the signing key
+# Required variables (Settings -> Variables):
+#   ANDROID_KEYSTORE_FILE      absolute path of the keystore on the runner
+#   ANDROID_KEY_ALIAS          alias of the signing key
+#
+# Security: this workflow only runs for pushes to main and manual starts -
+# never for pull requests - so code from forks never reaches the runner.
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
+env:
+  DEPLOY_HOST: 212.227.31.144
+  DEPLOY_USER: deploy
+  DOWNLOAD_DIR: /var/www/todo-app/downloads
+  APK_URL: https://todo-app.benjamin-milcic.dev/downloads/todo-app.apk
+
+jobs:
+  apk:
+    if: github.event_name != 'pull_request'
+    runs-on: [self-hosted, windows, android]
+    defaults:
+      run:
+        shell: bash
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: npm ci
+
+      - name: Build APK
+        env:
+          APP_VERSION_CODE: ${{ github.run_number }}
+          APP_VERSION_NAME: 1.0.${{ github.run_number }}
+          ANDROID_KEYSTORE_FILE: ${{ vars.ANDROID_KEYSTORE_FILE }}
+          ANDROID_KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_FILE" ] || [ ! -f "$ANDROID_KEYSTORE_FILE" ]; then
+            echo "Keystore not found - set the ANDROID_KEYSTORE_FILE variable"; exit 1
+          fi
+          npm run android:apk
+
+      - name: Upload to server
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          key="$RUNNER_TEMP/deploy_key"
+          known="$RUNNER_TEMP/known_hosts"
+          printf '%s\n' "$SSH_KEY" > "$key"
+          chmod 600 "$key"
+          ssh-keyscan -H "$DEPLOY_HOST" > "$known" 2>/dev/null
+          opts=(-i "$key" -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes)
+
+          # Upload under a temporary name and rename, so a download never
+          # gets a half-written file.
+          scp "${opts[@]}" dist-apk/todo-app.apk \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DOWNLOAD_DIR/todo-app.apk.tmp"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "chmod 644 $DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $DOWNLOAD_DIR/todo-app.apk.tmp $DOWNLOAD_DIR/todo-app.apk"
+          rm -f "$key" "$known"
+
+      - name: Verify
+        run: |
+          size=$(stat -c %s dist-apk/todo-app.apk)
+          live=$(curl -sI --max-time 20 "$APK_URL?r=$GITHUB_RUN_ID" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
+          echo "local=$size live=$live"
+          [ "$size" = "$live" ] || { echo "Download does not serve the new APK"; exit 1; }
+
+      - name: Remove key on failure
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"

@@ -1,0 +1,37 @@
+/* Bundled font, so the app also looks right offline. */
+@import '@fontsource-variable/manrope';
+
+/* Core CSS required for Ionic components to work properly */
+@import '@ionic/angular/css/core.css';
+
+/* Basic CSS for apps built with Ionic */
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/display.css';
+
+/* Optional CSS utils */
+@import '@ionic/angular/css/padding.css';
+@import '@ionic/angular/css/flex-utils.css';
+
+/* Dark mode follows the operating system setting. */
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Desktop PWA window with window-controls-overlay: keep the header draggable. */
+@media (display-mode: window-controls-overlay) {
+  ion-header ion-toolbar {
+    padding-top: env(titlebar-area-height, 0px);
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  ion-header ion-button,
+  ion-header .sync-dot {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+}

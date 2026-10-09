@@ -1,0 +1,5 @@
+# GitHub Actions may only control the ToDo API service.
+# No placeholders, no wildcards - every command spelled out in full.
+deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart todo-app-api, \
+                            /usr/bin/systemctl status todo-app-api, \
+                            /usr/bin/systemctl is-active todo-app-api
