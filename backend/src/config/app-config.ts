@@ -29,6 +29,11 @@ export interface AppConfig {
     accessTtlSeconds: number;
   };
   refreshTtlDays: number;
+  /** Speech-to-text for the voice input; null disables the feature. */
+  transcription: {
+    apiKey: string;
+    model: string;
+  } | null;
   google: {
     clientId: string;
     clientSecret: string;
@@ -87,6 +92,13 @@ export function loadConfig(): AppConfig {
       accessTtlSeconds: Number(process.env.ACCESS_TOKEN_TTL_SECONDS ?? 900),
     },
     refreshTtlDays: Number(process.env.REFRESH_TOKEN_TTL_DAYS ?? 90),
+    // Voice input (speech-to-text via Groq Whisper) is optional as well.
+    transcription: optional('GROQ_API_KEY')
+      ? {
+          apiKey: optional('GROQ_API_KEY')!,
+          model: optional('GROQ_TRANSCRIPTION_MODEL') ?? 'whisper-large-v3',
+        }
+      : null,
     // Google login is optional so that self-hosters can run the app without it.
     google:
       googleClientId && googleClientSecret && googleCallbackUrl

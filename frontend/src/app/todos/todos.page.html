@@ -66,24 +66,79 @@
   </ion-refresher>
 
   <main class="page">
-    <form class="composer" (ngSubmit)="addTodo()">
-      <input
-        name="title"
-        [(ngModel)]="newTitle"
-        [placeholder]="'todos.newTodo' | transloco"
-        maxlength="500"
-        autocomplete="off"
-        enterkeyhint="done"
-        [attr.aria-label]="'todos.newTodoLabel' | transloco"
-      />
-      <ion-button
-        type="submit"
-        shape="round"
-        [disabled]="!newTitle.trim()"
-        [attr.aria-label]="'todos.add' | transloco"
-      >
-        <ion-icon slot="icon-only" name="add" />
-      </ion-button>
+    <form class="composer-row" (ngSubmit)="addTodo()">
+      <div class="composer" [class.recording]="voice.stream()">
+        @if (voice.stream(); as stream) {
+          <!-- Recording: the input is replaced by a live waveform -->
+          <button
+            type="button"
+            class="icon-button"
+            [disabled]="voice.state() === 'transcribing'"
+            [attr.aria-label]="'voice.cancel' | transloco"
+            [title]="'voice.cancel' | transloco"
+            (click)="voice.cancel()"
+          >
+            <ion-icon name="close" />
+          </button>
+          <app-voice-waveform
+            class="waveform"
+            [stream]="stream"
+            [paused]="voice.state() === 'transcribing'"
+          />
+          @if (voice.state() === 'transcribing') {
+            <span class="recognizing">{{ 'voice.transcribing' | transloco }}</span>
+          }
+        } @else {
+          <input
+            #titleInput
+            name="title"
+            [(ngModel)]="newTitle"
+            [placeholder]="'todos.newTodo' | transloco"
+            maxlength="500"
+            autocomplete="off"
+            enterkeyhint="done"
+            [attr.aria-label]="'todos.newTodoLabel' | transloco"
+          />
+          @if (clientConfig.config().voiceInput) {
+            <button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="'voice.start' | transloco"
+              [title]="'voice.start' | transloco"
+              (click)="toggleRecording()"
+            >
+              <ion-icon name="mic-outline" />
+            </button>
+          }
+        }
+      </div>
+
+      @if (voice.stream()) {
+        <ion-button
+          type="button"
+          shape="round"
+          class="composer-action"
+          [disabled]="voice.state() === 'transcribing'"
+          [attr.aria-label]="'voice.confirm' | transloco"
+          (click)="toggleRecording()"
+        >
+          @if (voice.state() === 'transcribing') {
+            <ion-spinner slot="icon-only" name="crescent" />
+          } @else {
+            <ion-icon slot="icon-only" name="checkmark" />
+          }
+        </ion-button>
+      } @else {
+        <ion-button
+          type="submit"
+          shape="round"
+          class="composer-action"
+          [disabled]="!newTitle.trim()"
+          [attr.aria-label]="'todos.add' | transloco"
+        >
+          <ion-icon slot="icon-only" name="add" />
+        </ion-button>
+      }
     </form>
 
     <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)">

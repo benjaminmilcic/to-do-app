@@ -33,6 +33,8 @@ export interface AuthResult extends TokenPair {
 export interface ClientConfig {
   googleLogin: boolean;
   apkUrl: string | null;
+  /** Speech-to-text is configured on the server. */
+  voiceInput: boolean;
 }
 
 export interface Todo {

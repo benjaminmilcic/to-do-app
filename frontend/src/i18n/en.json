@@ -90,5 +90,17 @@
     "webAction": "Update",
     "apk": "New app version {{ version }} available",
     "apkAction": "Download"
+  },
+  "voice": {
+    "start": "Voice input",
+    "cancel": "Discard recording",
+    "confirm": "Use",
+    "transcribing": "Recognising …",
+    "errors": {
+      "unsupported": "This device does not support audio recording.",
+      "permission": "No access to the microphone. Please allow it in the settings.",
+      "failed": "Speech recognition failed. Please try again.",
+      "empty": "Nothing was recognised."
+    }
   }
 }

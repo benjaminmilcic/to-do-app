@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  type ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -23,6 +31,7 @@ import {
   IonReorderGroup,
   IonSegment,
   IonSegmentButton,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -35,12 +44,15 @@ import { addIcons } from 'ionicons';
 import {
   add,
   calendarOutline,
+  checkmark,
+  close,
   checkmarkDoneOutline,
   cloudOfflineOutline,
   documentTextOutline,
   downloadOutline,
   languageOutline,
   logOutOutline,
+  micOutline,
   trashOutline,
 } from 'ionicons/icons';
 import type { Todo } from '../core/api';
@@ -48,7 +60,12 @@ import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
 import { LanguageService } from '../core/i18n';
 import { SyncService } from '../core/sync.service';
+import {
+  VoiceInputError,
+  VoiceInputService,
+} from '../core/voice-input.service';
 import { LanguageSwitchComponent } from '../shared/language-switch.component';
+import { VoiceWaveformComponent } from '../shared/voice-waveform.component';
 import { TodoEditComponent, type EditResult } from './todo-edit.component';
 import { TodoStore } from './todo.store';
 
@@ -81,10 +98,12 @@ type Filter = 'open' | 'done';
     IonReorderGroup,
     IonSegment,
     IonSegmentButton,
+    IonSpinner,
     IonTitle,
     IonToolbar,
     LanguageSwitchComponent,
     TranslocoPipe,
+    VoiceWaveformComponent,
   ],
 })
 export class TodosPage {
@@ -93,6 +112,7 @@ export class TodosPage {
   protected readonly sync = inject(SyncService);
   protected readonly clientConfig = inject(ClientConfigService);
   protected readonly language = inject(LanguageService);
+  protected readonly voice = inject(VoiceInputService);
   private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(ModalController);
   private readonly toasts = inject(ToastController);
@@ -117,22 +137,31 @@ export class TodosPage {
   private readonly clock = setInterval(() => this.now.set(new Date()), 60_000);
 
   protected newTitle = '';
+  private readonly titleInput =
+    viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
   constructor() {
     addIcons({
       add,
       calendarOutline,
+      checkmark,
       checkmarkDoneOutline,
+      close,
       cloudOfflineOutline,
       documentTextOutline,
       downloadOutline,
       languageOutline,
       logOutOutline,
+      micOutline,
       trashOutline,
     });
 
     const destroyRef = inject(DestroyRef);
-    destroyRef.onDestroy(() => clearInterval(this.clock));
+    destroyRef.onDestroy(() => {
+      clearInterval(this.clock);
+      // Never leave the microphone on when the page goes away.
+      void this.voice.cancel();
+    });
     this.store.errors$
       .pipe(takeUntilDestroyed(destroyRef))
       .subscribe((key) => void this.toast(this.transloco.translate(key)));
@@ -155,6 +184,33 @@ export class TodosPage {
       this.filter.set('open');
     }
     await this.store.add(title);
+  }
+
+  /**
+   * First tap starts recording, second tap stops it and appends the
+   * recognised text to the input (to be checked, then added with +).
+   */
+  protected async toggleRecording(): Promise<void> {
+    try {
+      if (this.voice.state() === 'idle') {
+        await this.voice.start();
+        return;
+      }
+      const text = cleanTranscript(await this.voice.stop());
+      if (!text) {
+        void this.toast(this.transloco.translate('voice.errors.empty'));
+        return;
+      }
+      this.newTitle = this.newTitle.trim()
+        ? `${this.newTitle.trimEnd()} ${text}`
+        : text;
+      // The input is back after the recording; put the cursor at the end.
+      setTimeout(() => this.titleInput()?.nativeElement.focus());
+    } catch (error) {
+      const key =
+        error instanceof VoiceInputError ? error.message : 'voice.errors.failed';
+      void this.toast(this.transloco.translate(key));
+    }
   }
 
   protected toggle(todo: Todo): void {
@@ -260,4 +316,12 @@ function localDate(date: Date): string {
 /** "HH:mm" in local time. */
 function localTime(date: Date): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/**
+ * Whisper writes sentences ("Milch kaufen."), a todo title is no sentence:
+ * drop trailing punctuation and surrounding whitespace.
+ */
+function cleanTranscript(text: string): string {
+  return text.trim().replace(/[.!?。]+$/u, '').trim();
 }

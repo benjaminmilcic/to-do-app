@@ -90,5 +90,17 @@
     "webAction": "Ažuriraj",
     "apk": "Dostupna je nova verzija aplikacije {{ version }}",
     "apkAction": "Preuzmi"
+  },
+  "voice": {
+    "start": "Glasovni unos",
+    "cancel": "Odbaci snimku",
+    "confirm": "Preuzmi",
+    "transcribing": "Prepoznavanje …",
+    "errors": {
+      "unsupported": "Ovaj uređaj ne podržava snimanje zvuka.",
+      "permission": "Nema pristupa mikrofonu. Dopusti ga u postavkama.",
+      "failed": "Prepoznavanje govora nije uspjelo. Pokušaj ponovno.",
+      "empty": "Ništa nije prepoznato."
+    }
   }
 }

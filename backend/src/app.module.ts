@@ -8,6 +8,7 @@ import { AppConfigModule } from './config/config.module.js';
 import { typeOrmOptions } from './database/typeorm-options.js';
 import { HealthController } from './health/health.controller.js';
 import { TodosModule } from './todos/todos.module.js';
+import { TranscriptionModule } from './transcription/transcription.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module.js';
     UsersModule,
     AuthModule,
     TodosModule,
+    TranscriptionModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

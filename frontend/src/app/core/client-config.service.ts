@@ -10,7 +10,11 @@ export class ClientConfigService {
   private readonly http = inject(HttpClient);
   private loading: Promise<void> | null = null;
 
-  readonly config = signal<ClientConfig>({ googleLogin: false, apkUrl: null });
+  readonly config = signal<ClientConfig>({
+    googleLogin: false,
+    apkUrl: null,
+    voiceInput: false,
+  });
 
   load(): Promise<void> {
     this.loading ??= firstValueFrom(

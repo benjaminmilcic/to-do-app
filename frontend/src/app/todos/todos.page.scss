@@ -87,14 +87,56 @@ ion-content {
   gap: 14px;
 }
 
-.composer {
+// Input pill (with the microphone inside) and the add/confirm button next to it.
+.composer-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 6px 6px 18px;
+  gap: 10px;
+}
+
+.composer-action {
+  flex-shrink: 0;
+  margin: 0;
+  width: 52px;
+  height: 52px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 50%;
+  --box-shadow: var(--app-shadow);
+
+  ion-spinner {
+    color: currentColor;
+  }
+}
+
+.composer {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 18px;
   border-radius: 999px;
   background: var(--app-surface);
   box-shadow: var(--app-shadow);
+
+  &.recording {
+    padding-left: 6px;
+    padding-right: 16px;
+  }
+
+  .waveform {
+    flex: 1;
+    height: 30px;
+  }
+
+  .recognizing {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
 
   input {
     flex: 1;
@@ -112,11 +154,40 @@ ion-content {
     }
   }
 
-  ion-button {
-    margin: 0;
-    --padding-start: 12px;
-    --padding-end: 12px;
-    height: 44px;
+}
+
+// Round icon button inside the input pill (microphone, discard recording).
+.icon-button {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ion-color-medium);
+  font-size: 1.35rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--app-chip);
+    color: var(--ion-color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 }
 

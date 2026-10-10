@@ -24,6 +24,7 @@ export class HealthController {
     return {
       googleLogin: this.config.google !== null,
       apkUrl: this.config.apkUrl,
+      voiceInput: this.config.transcription !== null,
     };
   }
 }

@@ -90,5 +90,17 @@
     "webAction": "Aktualisieren",
     "apk": "Neue App-Version {{ version }} verfügbar",
     "apkAction": "Herunterladen"
+  },
+  "voice": {
+    "start": "Spracheingabe",
+    "cancel": "Aufnahme verwerfen",
+    "confirm": "Übernehmen",
+    "transcribing": "Wird erkannt …",
+    "errors": {
+      "unsupported": "Dieses Gerät unterstützt keine Audioaufnahme.",
+      "permission": "Kein Zugriff auf das Mikrofon. Bitte in den Einstellungen erlauben.",
+      "failed": "Die Spracherkennung ist fehlgeschlagen. Bitte versuche es noch einmal.",
+      "empty": "Es wurde nichts erkannt."
+    }
   }
 }
