@@ -109,5 +109,8 @@
       "failed": "Prepoznavanje govora nije uspjelo. Pokušaj ponovno.",
       "empty": "Ništa nije prepoznato."
     }
+  },
+  "admin": {
+    "users": "Registrirani korisnici"
   }
 }

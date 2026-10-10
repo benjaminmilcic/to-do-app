@@ -109,5 +109,8 @@
       "failed": "Speech recognition failed. Please try again.",
       "empty": "Nothing was recognised."
     }
+  },
+  "admin": {
+    "users": "Registered users"
   }
 }

@@ -1,6 +1,7 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { APP_CONFIG, type AppConfig } from '../config/app-config.js';
 import { PublicUser, User } from './user.entity.js';
 
 export interface GoogleProfile {
@@ -14,7 +15,24 @@ export interface GoogleProfile {
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
+
+  /**
+   * Admins are listed in ADMIN_EMAILS and must be linked to Google: sign-up
+   * does not verify email addresses, Google does.
+   */
+  isAdmin(user: User): boolean {
+    return (
+      Boolean(user.googleId) &&
+      this.config.adminEmails.includes(normalizeEmail(user.email))
+    );
+  }
+
+  /** Number of accounts ever created (accounts cannot be deleted). */
+  count(): Promise<number> {
+    return this.users.count();
+  }
 
   findById(id: string): Promise<User | null> {
     return this.users.findOne({ where: { id } });
@@ -98,6 +116,7 @@ export class UsersService {
       avatarUrl: user.avatarUrl,
       hasPassword: await this.hasPassword(user.id),
       hasGoogle: Boolean(user.googleId),
+      isAdmin: this.isAdmin(user),
     };
   }
 }

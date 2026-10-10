@@ -109,5 +109,8 @@
       "failed": "Die Spracherkennung ist fehlgeschlagen. Bitte versuche es noch einmal.",
       "empty": "Es wurde nichts erkannt."
     }
+  },
+  "admin": {
+    "users": "Registrierte Benutzer"
   }
 }

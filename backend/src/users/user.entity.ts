@@ -54,4 +54,6 @@ export interface PublicUser {
   avatarUrl: string | null;
   hasPassword: boolean;
   hasGoogle: boolean;
+  /** May see the admin statistics (see AppConfig.adminEmails). */
+  isAdmin: boolean;
 }

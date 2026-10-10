@@ -18,6 +18,8 @@ export interface PublicUser {
   avatarUrl: string | null;
   hasPassword: boolean;
   hasGoogle: boolean;
+  /** May see the admin statistics; decided and enforced by the server. */
+  isAdmin: boolean;
 }
 
 export interface TokenPair {

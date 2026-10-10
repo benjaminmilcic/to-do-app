@@ -32,6 +32,7 @@
   class="account-popover"
   trigger="account-trigger"
   triggerAction="click"
+  (willPresent)="loadAdminStats()"
 >
   <ng-template>
     <ion-list lines="none" class="account">
@@ -61,6 +62,13 @@
         <ion-label>{{ 'theme.label' | transloco }}</ion-label>
         <app-theme-switch slot="end" />
       </ion-item>
+      @if (auth.user()?.isAdmin) {
+        <ion-item class="admin-item">
+          <ion-icon slot="start" name="people-outline" />
+          <ion-label>{{ 'admin.users' | transloco }}</ion-label>
+          <span slot="end" class="admin-count">{{ adminUserCount() ?? '…' }}</span>
+        </ion-item>
+      }
       @if (clientConfig.apkDownloadUrl; as apk) {
         <ion-item [href]="apk" download detail="false">
           <ion-icon slot="start" name="download-outline" />

@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
@@ -9,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import {
   IonAvatar,
@@ -54,9 +56,10 @@ import {
   languageOutline,
   logOutOutline,
   micOutline,
+  peopleOutline,
   trashOutline,
 } from 'ionicons/icons';
-import type { Todo } from '../core/api';
+import { API_URL, type Todo } from '../core/api';
 import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
 import { LanguageService } from '../core/i18n';
@@ -119,6 +122,10 @@ export class TodosPage {
   private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(ModalController);
   private readonly toasts = inject(ToastController);
+  private readonly http = inject(HttpClient);
+
+  /** Admin only: number of registered accounts, loaded when the menu opens. */
+  protected readonly adminUserCount = signal<number | null>(null);
 
   protected readonly filter = signal<Filter>('open');
   protected readonly visible = computed(() =>
@@ -157,6 +164,7 @@ export class TodosPage {
       languageOutline,
       logOutOutline,
       micOutline,
+      peopleOutline,
       trashOutline,
     });
 
@@ -214,6 +222,20 @@ export class TodosPage {
       const key =
         error instanceof VoiceInputError ? error.message : 'voice.errors.failed';
       void this.toast(this.transloco.translate(key));
+    }
+  }
+
+  protected async loadAdminStats(): Promise<void> {
+    if (!this.auth.user()?.isAdmin) {
+      return;
+    }
+    try {
+      const stats = await firstValueFrom(
+        this.http.get<{ users: number }>(`${API_URL}/admin/stats`),
+      );
+      this.adminUserCount.set(stats.users);
+    } catch {
+      // Offline or no longer admin: keep the last known number.
     }
   }
 

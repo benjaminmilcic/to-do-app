@@ -17,6 +17,11 @@ export interface AppConfig {
   appScheme: string;
   /** Public URL of the APK download, shown in the web app (optional). */
   apkUrl: string | null;
+  /**
+   * Accounts with access to the admin statistics (lower-case emails). Only
+   * Google-linked accounts qualify, because sign-up does not verify emails.
+   */
+  adminEmails: string[];
   db: {
     host: string;
     port: number;
@@ -79,6 +84,10 @@ export function loadConfig(): AppConfig {
       .map((o) => o.trim())
       .filter(Boolean),
     appScheme: optional('APP_SCHEME') ?? 'dev.benjaminmilcic.todo',
+    adminEmails: (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
     apkUrl: optional('APK_URL'),
     db: {
       host: required('DB_HOST'),
