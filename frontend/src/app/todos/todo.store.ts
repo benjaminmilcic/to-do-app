@@ -7,7 +7,7 @@ import { AuthService } from '../core/auth.service';
 import { SyncService } from '../core/sync.service';
 
 export type TodoPatch = Partial<
-  Pick<Todo, 'title' | 'notes' | 'done' | 'dueDate' | 'position'>
+  Pick<Todo, 'title' | 'notes' | 'done' | 'dueDate' | 'dueTime' | 'position'>
 >;
 
 const CACHE_KEY = 'todo.cache';
@@ -65,7 +65,10 @@ export class TodoStore {
       // Reload after every reconnect: catches everything missed while offline.
       this.sync.connected$.subscribe(() => void this.reload());
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && this.sync.status() !== 'online') {
+        if (
+          document.visibilityState === 'visible' &&
+          this.sync.status() !== 'online'
+        ) {
           void this.reload();
         }
       });
@@ -81,13 +84,17 @@ export class TodoStore {
     }
     this.loading.set(true);
     try {
-      const todos = await firstValueFrom(this.http.get<Todo[]>(`${API_URL}/todos`));
+      const todos = await firstValueFrom(
+        this.http.get<Todo[]>(`${API_URL}/todos`),
+      );
       this._todos.set(todos);
       this.loaded.set(true);
       void this.saveCache();
     } catch {
       if (!this.loaded()) {
-        this.errors$.next('Aufgaben konnten nicht geladen werden. Bist du offline?');
+        this.errors$.next(
+          'Aufgaben konnten nicht geladen werden. Bist du offline?',
+        );
       }
     } finally {
       this.loading.set(false);
@@ -107,6 +114,7 @@ export class TodoStore {
       notes: null,
       done: false,
       dueDate,
+      dueTime: null,
       position: minPosition - 1,
       completedAt: null,
       createdAt: now,
@@ -130,6 +138,10 @@ export class TodoStore {
       return;
     }
     const optimistic: Todo = { ...current, ...patch };
+    // Same rule as the API: no date, no time.
+    if (!optimistic.dueDate) {
+      optimistic.dueTime = null;
+    }
     if (patch.done !== undefined && patch.done !== current.done) {
       optimistic.completedAt = patch.done ? new Date().toISOString() : null;
     }
@@ -162,6 +174,7 @@ export class TodoStore {
         title: todo.title,
         notes: todo.notes,
         dueDate: todo.dueDate,
+        dueTime: todo.dueTime,
       }),
       'Aufgabe konnte nicht wiederhergestellt werden.',
     );

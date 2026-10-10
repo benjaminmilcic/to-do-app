@@ -128,13 +128,17 @@
                   @if (todo.dueDate || todo.notes) {
                     <span class="meta">
                       @if (todo.dueDate) {
+                        @let state = todo.done ? null : dueState(todo);
                         <span
                           class="chip"
-                          [class.overdue]="!todo.done && todo.dueDate < today"
-                          [class.today]="!todo.done && todo.dueDate === today"
+                          [class.overdue]="state === 'overdue'"
+                          [class.today]="state === 'today'"
                         >
                           <ion-icon name="calendar-outline" />
                           {{ todo.dueDate | date: 'EE, d. MMM' }}
+                          @if (todo.dueTime) {
+                            · {{ todo.dueTime }} Uhr
+                          }
                         </span>
                       }
                       @if (todo.notes) {

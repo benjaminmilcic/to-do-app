@@ -7,9 +7,13 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   ValidateIf,
 } from 'class-validator';
+
+/** "HH:mm", 00:00 - 23:59. */
+const TIME_OF_DAY = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
@@ -34,6 +38,12 @@ export class CreateTodoDto {
   @ValidateIf((_, value) => value !== null)
   @IsDateString({ strict: true })
   dueDate?: string | null;
+
+  /** Optional time of day for dueDate ("HH:mm"); requires a dueDate. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @Matches(TIME_OF_DAY, { message: 'dueTime must be HH:mm' })
+  dueTime?: string | null;
 }
 
 export class UpdateTodoDto {
@@ -58,6 +68,12 @@ export class UpdateTodoDto {
   @ValidateIf((_, value) => value !== null)
   @IsDateString({ strict: true })
   dueDate?: string | null;
+
+  /** Optional time of day for dueDate ("HH:mm"); requires a dueDate. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @Matches(TIME_OF_DAY, { message: 'dueTime must be HH:mm' })
+  dueTime?: string | null;
 
   @IsOptional()
   @IsNumber({ allowNaN: false, allowInfinity: false })

@@ -5,12 +5,19 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
-import { loadConfig } from '../config/app-config.js';
+import { type AppConfig, loadConfig } from '../config/app-config.js';
 import { TokensService } from '../auth/tokens.service.js';
 
 export type SyncEvent = 'todo:upsert' | 'todo:delete';
 
-const config = loadConfig();
+// Read lazily: the decorator below is evaluated on import, when the
+// environment may not be loaded yet (e.g. in unit tests).
+let config: AppConfig | undefined;
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  config ??= loadConfig();
+  return !config.isProduction || !origin || config.corsOrigins.includes(origin);
+}
 
 /**
  * Pushes every change to all other devices of the same user.
@@ -26,7 +33,10 @@ const config = loadConfig();
   // Same-origin in production; the dev server and the Android WebView are
   // cross-origin.
   cors: {
-    origin: config.isProduction ? config.corsOrigins : true,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => callback(null, isAllowedOrigin(origin)),
     credentials: false,
   },
 })

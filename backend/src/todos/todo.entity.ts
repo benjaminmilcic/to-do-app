@@ -32,6 +32,21 @@ export class Todo {
   @Column({ name: 'due_date', type: 'date', nullable: true })
   dueDate: string | null;
 
+  /**
+   * Optional time of day for `dueDate`, as "HH:mm" (local time of the user;
+   * like the date it carries no time zone). MySQL returns "HH:mm:ss".
+   */
+  @Column({
+    name: 'due_time',
+    type: 'time',
+    nullable: true,
+    transformer: {
+      to: (value: string | null | undefined) => value,
+      from: (value: string | null) => value?.slice(0, 5) ?? null,
+    },
+  })
+  dueTime: string | null;
+
   /** Sort order within the user's list (ascending). */
   @Column({ type: 'double', default: 0 })
   position: number;

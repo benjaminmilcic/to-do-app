@@ -4,9 +4,10 @@ import { Session } from '../auth/session.entity.js';
 import { Todo } from '../todos/todo.entity.js';
 import { User } from '../users/user.entity.js';
 import { InitialSchema1760000000000 } from './migrations/1760000000000-InitialSchema.js';
+import { AddDueTime1760100000000 } from './migrations/1760100000000-AddDueTime.js';
 
 export const ENTITIES = [User, Session, Todo];
-export const MIGRATIONS = [InitialSchema1760000000000];
+export const MIGRATIONS = [InitialSchema1760000000000, AddDueTime1760100000000];
 
 export function typeOrmOptions(config: AppConfig): DataSourceOptions {
   return {

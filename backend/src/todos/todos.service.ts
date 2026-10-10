@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateTodoDto, UpdateTodoDto } from './dto/todo.dto.js';
@@ -47,6 +51,7 @@ export class TodosService {
         title: dto.title,
         notes: dto.notes ?? null,
         dueDate: dto.dueDate ?? null,
+        dueTime: dueTimeFor(dto.dueDate ?? null, dto.dueTime ?? null),
         done: false,
         completedAt: null,
         position: min === null ? 0 : Number(min) - 1,
@@ -66,7 +71,15 @@ export class TodosService {
 
     if (dto.title !== undefined) todo.title = dto.title;
     if (dto.notes !== undefined) todo.notes = dto.notes;
-    if (dto.dueDate !== undefined) todo.dueDate = dto.dueDate;
+    if (dto.dueDate !== undefined) {
+      todo.dueDate = dto.dueDate;
+      // Removing the date also removes its time.
+      if (dto.dueDate === null && dto.dueTime === undefined) {
+        todo.dueTime = null;
+      }
+    }
+    if (dto.dueTime !== undefined) todo.dueTime = dto.dueTime;
+    todo.dueTime = dueTimeFor(todo.dueDate, todo.dueTime);
     if (dto.position !== undefined) todo.position = dto.position;
     if (dto.done !== undefined && dto.done !== todo.done) {
       todo.done = dto.done;
@@ -108,4 +121,18 @@ export class TodosService {
     }
     return todo;
   }
+}
+
+/**
+ * A time of day only makes sense together with a date: removing the date
+ * removes the time, and a time without a date is rejected.
+ */
+function dueTimeFor(
+  dueDate: string | null,
+  dueTime: string | null,
+): string | null {
+  if (dueTime && !dueDate) {
+    throw new BadRequestException('dueTime requires a dueDate');
+  }
+  return dueDate ? dueTime : null;
 }

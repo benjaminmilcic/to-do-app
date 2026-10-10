@@ -1,11 +1,5 @@
 import { DatePipe } from '@angular/common';
-import {
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -110,7 +104,9 @@ export class TodosPage {
         .join('') || '?'
     );
   });
-  protected readonly today = new Date().toISOString().slice(0, 10);
+  /** Current time, refreshed every minute so "today"/"overdue" stay right. */
+  private readonly now = signal(new Date());
+  private readonly clock = setInterval(() => this.now.set(new Date()), 60_000);
 
   protected newTitle = '';
 
@@ -126,8 +122,10 @@ export class TodosPage {
       trashOutline,
     });
 
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => clearInterval(this.clock));
     this.store.errors$
-      .pipe(takeUntilDestroyed(inject(DestroyRef)))
+      .pipe(takeUntilDestroyed(destroyRef))
       .subscribe((message) => void this.toast(message));
 
     void this.clientConfig.load();
@@ -208,6 +206,28 @@ export class TodosPage {
     await this.auth.logout();
   }
 
+  /**
+   * "overdue" once the due date - or, if set, the due time - has passed;
+   * "today" for anything still due today. Uses local time, like the inputs.
+   */
+  protected dueState(todo: Todo): 'overdue' | 'today' | null {
+    if (!todo.dueDate) {
+      return null;
+    }
+    const now = this.now();
+    const today = localDate(now);
+    if (todo.dueDate < today) {
+      return 'overdue';
+    }
+    if (todo.dueDate > today) {
+      return null;
+    }
+    if (todo.dueTime && todo.dueTime <= localTime(now)) {
+      return 'overdue';
+    }
+    return 'today';
+  }
+
   private async toast(message: string): Promise<void> {
     const toast = await this.toasts.create({
       message,
@@ -217,4 +237,16 @@ export class TodosPage {
     });
     await toast.present();
   }
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** "YYYY-MM-DD" in local time (toISOString() would use UTC). */
+function localDate(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** "HH:mm" in local time. */
+function localTime(date: Date): string {
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }

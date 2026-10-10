@@ -41,6 +41,8 @@ export interface Todo {
   notes: string | null;
   done: boolean;
   dueDate: string | null;
+  /** Optional time of day for dueDate, "HH:mm". */
+  dueTime: string | null;
   position: number;
   completedAt: string | null;
   createdAt: string;

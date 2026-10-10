@@ -15,8 +15,7 @@ import type { Todo } from '../core/api';
 import type { TodoPatch } from './todo.store';
 
 export type EditResult =
-  | { action: 'save'; patch: TodoPatch }
-  | { action: 'delete' };
+  { action: 'save'; patch: TodoPatch } | { action: 'delete' };
 
 /** Edit dialog for a single todo. Returns an EditResult via dismiss(). */
 @Component({
@@ -56,14 +55,26 @@ export type EditResult =
           rows="4"
           [(ngModel)]="notes"
         />
-        <ion-input
-          label="Fällig am"
-          labelPlacement="stacked"
-          fill="outline"
-          type="date"
-          name="dueDate"
-          [(ngModel)]="dueDate"
-        />
+        <div class="due">
+          <ion-input
+            label="Fällig am"
+            labelPlacement="stacked"
+            fill="outline"
+            type="date"
+            name="dueDate"
+            [(ngModel)]="dueDate"
+          />
+          <ion-input
+            label="Uhrzeit (optional)"
+            labelPlacement="stacked"
+            fill="outline"
+            type="time"
+            name="dueTime"
+            [disabled]="!dueDate"
+            [helperText]="dueDate ? '' : 'Erst ein Datum wählen'"
+            [(ngModel)]="dueTime"
+          />
+        </div>
         <ion-button
           class="delete"
           expand="block"
@@ -83,6 +94,11 @@ export type EditResult =
       gap: 16px;
       max-width: 560px;
       margin: 0 auto;
+    }
+    .due {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 12px;
     }
     .delete {
       margin-top: 16px;
@@ -109,12 +125,14 @@ export class TodoEditComponent implements OnInit {
   protected title = '';
   protected notes = '';
   protected dueDate = '';
+  protected dueTime = '';
 
   ngOnInit(): void {
     const todo = this.todo;
     this.title = todo.title;
     this.notes = todo.notes ?? '';
     this.dueDate = todo.dueDate ?? '';
+    this.dueTime = todo.dueTime ?? '';
   }
 
   protected cancel(): void {
@@ -133,6 +151,9 @@ export class TodoEditComponent implements OnInit {
     if (notes !== todo.notes) patch.notes = notes;
     const dueDate = this.dueDate || null;
     if (dueDate !== todo.dueDate) patch.dueDate = dueDate;
+    // A time only counts together with a date.
+    const dueTime = (dueDate && this.dueTime) || null;
+    if (dueTime !== todo.dueTime) patch.dueTime = dueTime;
 
     const result: EditResult = { action: 'save', patch };
     void this.modal.dismiss(result);
