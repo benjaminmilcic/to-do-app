@@ -120,7 +120,7 @@
       <ion-list class="todo-list" lines="none">
         <ion-reorder-group
           [disabled]="filter() !== 'open'"
-          (ionItemReorder)="reorder($event)"
+          (ionReorderEnd)="reorder($event)"
         >
           @for (todo of visible(); track todo.id) {
             <ion-item-sliding #sliding>
@@ -131,7 +131,11 @@
                   (ionChange)="toggle(todo)"
                   [attr.aria-label]="(todo.done ? 'todos.markOpen' : 'todos.markDone') | transloco"
                 />
-                <ion-label class="todo-text" (click)="edit(todo)">
+                <!-- A real button: besides being the accessible way to open
+                     the dialog, it stops Ionic from stretching the checkbox's
+                     click area over the whole row (a tap next to the reorder
+                     handle used to tick the todo off). -->
+                <button type="button" class="todo-text" (click)="edit(todo)">
                   <span class="todo-title">{{ todo.title }}</span>
                   @if (todo.dueDate || todo.notes) {
                     <span class="meta">
@@ -157,7 +161,7 @@
                       }
                     </span>
                   }
-                </ion-label>
+                </button>
                 @if (filter() === 'open') {
                   <ion-reorder slot="end" />
                 }

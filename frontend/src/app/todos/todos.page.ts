@@ -27,8 +27,8 @@ import {
   IonToolbar,
   ModalController,
   ToastController,
-  type ItemReorderEventDetail,
   type RefresherEventDetail,
+  type ReorderEndCustomEvent,
 } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -192,7 +192,9 @@ export class TodosPage {
     }
   }
 
-  protected reorder(event: CustomEvent<ItemReorderEventDetail>): void {
+  protected reorder(event: ReorderEndCustomEvent): void {
+    // Also fires when the item was dropped where it started (from === to);
+    // move() then does nothing.
     const { from, to } = event.detail;
     // The store re-sorts the list itself; let Ionic only finish the gesture.
     event.detail.complete(false);

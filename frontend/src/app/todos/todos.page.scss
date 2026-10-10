@@ -164,13 +164,42 @@ ion-item-sliding {
   }
 }
 
+// Button that opens the edit dialog. Fills the row between checkbox and
+// reorder handle, so a tap anywhere there edits instead of ticking off.
 .todo-text {
-  cursor: pointer;
-  white-space: normal;
-  display: flex !important;
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 0;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  white-space: normal;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+// Larger touch target for the drag handle (at least 44px wide).
+ion-reorder {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  margin-inline-end: -8px;
 }
 
 .todo-title {
