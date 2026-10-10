@@ -1,18 +1,36 @@
 import { Injectable, inject } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
+import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { ToastController } from '@ionic/angular';
+import { API_ORIGIN } from './api';
 
 /** Look for a new version at most this often while the app is open. */
 const CHECK_INTERVAL_MS = 30 * 60_000;
 
+/** Published next to the APK by the build-apk workflow. */
+const APK_VERSION_URL = `${API_ORIGIN}/downloads/version.json`;
+
+interface ApkVersion {
+  versionCode: number;
+  versionName: string;
+  url: string;
+}
+
 /**
- * Keeps the installed PWA up to date.
+ * Keeps the app up to date.
  *
- * The service worker starts the app from its cache and downloads a new
- * deployment in the background. Once that download is complete, the user gets
- * a hint with an "update" button. If they ignore it, the new version is loaded
- * the next time the app is in the background, so nobody loses a half-typed
- * todo and the app does not run stale code against a newer API for long.
+ * Web / PWA: the service worker starts the app from its cache and downloads a
+ * new deployment in the background. Once that download is complete, the user
+ * gets a hint with an "update" button. If they ignore it, the new version is
+ * loaded the next time the app is in the background, so nobody loses a
+ * half-typed todo and the app does not run stale code against a newer API for
+ * long.
+ *
+ * Android: the app's files are part of the APK, so an update means installing
+ * a new APK. The app compares its own build number with the one published on
+ * the server and offers the download.
  */
 @Injectable({ providedIn: 'root' })
 export class AppUpdateService {
@@ -20,8 +38,20 @@ export class AppUpdateService {
   private readonly toasts = inject(ToastController);
 
   private updateReady = false;
+  /** Android: the APK version the hint was last shown (or dismissed) for. */
+  private apkHintShownFor = 0;
 
   start(): void {
+    if (Capacitor.isNativePlatform()) {
+      this.startNative();
+    } else {
+      this.startWeb();
+    }
+  }
+
+  // --- Web / PWA -------------------------------------------------------------
+
+  private startWeb(): void {
     if (!this.updates.isEnabled) {
       return;
     }
@@ -29,7 +59,9 @@ export class AppUpdateService {
     this.updates.versionUpdates.subscribe((event) => {
       if (event.type === 'VERSION_READY' && !this.updateReady) {
         this.updateReady = true;
-        void this.showHint();
+        void this.showHint('Neue Version verfügbar', 'Aktualisieren', () =>
+          document.location.reload(),
+        );
       }
     });
 
@@ -45,13 +77,13 @@ export class AppUpdateService {
       } else {
         // Coming back to the app (e.g. reopening the PWA window) is the
         // moment a new deployment is most likely to be waiting.
-        this.check();
+        this.checkWeb();
       }
     });
-    setInterval(() => this.check(), CHECK_INTERVAL_MS);
+    setInterval(() => this.checkWeb(), CHECK_INTERVAL_MS);
   }
 
-  private check(): void {
+  private checkWeb(): void {
     if (!this.updateReady) {
       this.updates.checkForUpdate().catch(() => {
         // Offline: try again on the next occasion.
@@ -59,16 +91,66 @@ export class AppUpdateService {
     }
   }
 
-  private async showHint(): Promise<void> {
+  // --- Android ---------------------------------------------------------------
+
+  private startNative(): void {
+    void this.checkApk();
+    void App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        void this.checkApk();
+      }
+    });
+    setInterval(() => void this.checkApk(), CHECK_INTERVAL_MS);
+  }
+
+  private async checkApk(): Promise<void> {
+    try {
+      const installed = Number((await App.getInfo()).build);
+      // Native HTTP: the static file on the server sends no CORS headers.
+      const response = await CapacitorHttp.get({
+        url: `${APK_VERSION_URL}?t=${Date.now()}`,
+        responseType: 'json',
+      });
+      if (response.status !== 200) {
+        return;
+      }
+      const latest = (
+        typeof response.data === 'string'
+          ? JSON.parse(response.data)
+          : response.data
+      ) as ApkVersion;
+
+      if (
+        !Number.isFinite(installed) ||
+        latest.versionCode <= installed ||
+        latest.versionCode <= this.apkHintShownFor
+      ) {
+        return;
+      }
+      this.apkHintShownFor = latest.versionCode;
+      await this.showHint(
+        `Neue App-Version ${latest.versionName} verfügbar`,
+        'Herunterladen',
+        () => void Browser.open({ url: latest.url }),
+      );
+    } catch {
+      // Offline or file missing: try again on the next occasion.
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+
+  private async showHint(
+    message: string,
+    action: string,
+    handler: () => void,
+  ): Promise<void> {
     const toast = await this.toasts.create({
-      message: 'Neue Version verfügbar',
+      message,
       position: 'bottom',
       color: 'primary',
       buttons: [
-        {
-          text: 'Aktualisieren',
-          handler: () => document.location.reload(),
-        },
+        { text: action, handler },
         { icon: 'close', role: 'cancel', side: 'end' },
       ],
     });

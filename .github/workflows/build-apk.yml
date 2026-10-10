@@ -109,12 +109,25 @@ jobs:
           scp -q dist-apk/todo-app.apk "$target:$DOWNLOAD_DIR/todo-app.apk.tmp"
           ssh "$target" "chmod 644 $DOWNLOAD_DIR/todo-app.apk.tmp && mv -f $DOWNLOAD_DIR/todo-app.apk.tmp $DOWNLOAD_DIR/todo-app.apk"
 
+          # The installed app compares its build number with this file and
+          # offers the download. Published after the APK, so it never points
+          # to a file that is not there yet.
+          printf '{"versionCode":%s,"versionName":"1.0.%s","url":"%s","built":"%s"}\n' \
+            "$GITHUB_RUN_NUMBER" "$GITHUB_RUN_NUMBER" "$APK_URL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > version.json
+          scp -q version.json "$target:$DOWNLOAD_DIR/version.json.tmp"
+          ssh "$target" "chmod 644 $DOWNLOAD_DIR/version.json.tmp && mv -f $DOWNLOAD_DIR/version.json.tmp $DOWNLOAD_DIR/version.json"
+
       - name: Verify
         run: |
           size=$(stat -c %s dist-apk/todo-app.apk)
           live=$(curl -sI --max-time 20 "$APK_URL?r=$GITHUB_RUN_ID" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
           echo "local=$size live=$live"
           [ "$size" = "$live" ] || { echo "Download does not serve the new APK"; exit 1; }
+          version=$(curl -s --max-time 20 "${APK_URL%/*}/version.json?r=$GITHUB_RUN_ID")
+          echo "version.json: $version"
+          echo "$version" | jq -e ".versionCode == $GITHUB_RUN_NUMBER" > /dev/null \
+            || { echo "version.json does not announce this build"; exit 1; }
 
       - name: Remove secrets from disk
         if: always()
