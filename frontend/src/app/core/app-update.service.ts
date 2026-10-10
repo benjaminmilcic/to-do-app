@@ -6,8 +6,11 @@ import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { ToastController } from '@ionic/angular';
 import { API_ORIGIN } from './api';
 
-/** Look for a new version at most this often while the app is open. */
-const CHECK_INTERVAL_MS = 30 * 60_000;
+/**
+ * How often to look for a new version while the app stays open in the
+ * foreground. Each check only fetches a tiny file.
+ */
+const CHECK_INTERVAL_MS = 5 * 60_000;
 
 /** Published next to the APK by the build-apk workflow. */
 const APK_VERSION_URL = `${API_ORIGIN}/downloads/version.json`;
@@ -40,6 +43,7 @@ export class AppUpdateService {
   private updateReady = false;
   /** Android: the APK version the hint was last shown (or dismissed) for. */
   private apkHintShownFor = 0;
+  private apkCheckRunning = false;
 
   start(): void {
     if (Capacitor.isNativePlatform()) {
@@ -95,6 +99,9 @@ export class AppUpdateService {
 
   private startNative(): void {
     void this.checkApk();
+    // Coming back from the background. `resume` and `appStateChange` both
+    // fire on Android; checkApk() shows each version's hint only once.
+    void App.addListener('resume', () => void this.checkApk());
     void App.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         void this.checkApk();
@@ -104,6 +111,11 @@ export class AppUpdateService {
   }
 
   private async checkApk(): Promise<void> {
+    // Several triggers can fire at once; one check at a time is enough.
+    if (this.apkCheckRunning) {
+      return;
+    }
+    this.apkCheckRunning = true;
     try {
       const installed = Number((await App.getInfo()).build);
       // Native HTTP: the static file on the server sends no CORS headers.
@@ -135,6 +147,8 @@ export class AppUpdateService {
       );
     } catch {
       // Offline or file missing: try again on the next occasion.
+    } finally {
+      this.apkCheckRunning = false;
     }
   }
 
