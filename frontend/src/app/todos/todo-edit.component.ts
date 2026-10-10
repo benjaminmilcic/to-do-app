@@ -14,7 +14,12 @@ import {
 } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
-import { checkmark, close, trashOutline } from 'ionicons/icons';
+import {
+  checkmark,
+  close,
+  documentTextOutline,
+  trashOutline,
+} from 'ionicons/icons';
 import type { Todo } from '../core/api';
 import type { TodoPatch } from './todo.store';
 
@@ -38,7 +43,13 @@ export type EditResult =
             {{ 'edit.cancel' | transloco }}
           </ion-button>
         </ion-buttons>
-        <ion-title>{{ 'edit.heading' | transloco }}</ion-title>
+        <ion-title class="edit-title">
+          <ion-icon
+            name="document-text-outline"
+            role="img"
+            [attr.aria-label]="'edit.heading' | transloco"
+          />
+        </ion-title>
         <ion-buttons slot="end">
           <ion-button
             fill="outline"
@@ -121,6 +132,26 @@ export type EditResult =
       --padding-start: 12px;
       --padding-end: 12px;
     }
+    /* Icon exactly in the middle of the header, independent of the widths
+       of the buttons on either side. */
+    .edit-title {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      /* Ionic aligns the title to the start internally. */
+      text-align: center;
+      pointer-events: none;
+    }
+    .edit-title ion-icon {
+      /* Block instead of inline, so no line height shifts it upwards. */
+      display: block;
+      margin: 0 auto;
+      font-size: 26px;
+      color: var(--ion-color-primary);
+    }
     .edit-toolbar ion-buttons {
       gap: 8px;
       padding-inline: 4px;
@@ -171,7 +202,7 @@ export class TodoEditComponent implements OnInit {
   private readonly modal = inject(ModalController);
 
   constructor() {
-    addIcons({ checkmark, close, trashOutline });
+    addIcons({ checkmark, close, documentTextOutline, trashOutline });
   }
 
   /** Set through ModalController componentProps. */
