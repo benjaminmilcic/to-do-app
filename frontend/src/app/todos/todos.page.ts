@@ -264,6 +264,7 @@ export class TodosPage {
     const modal = await this.modals.create({
       component: TodoEditComponent,
       componentProps: { todo },
+      cssClass: 'todo-edit-modal',
     });
     await modal.present();
     const { data } = await modal.onWillDismiss<EditResult>();
