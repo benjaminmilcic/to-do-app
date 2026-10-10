@@ -19,8 +19,12 @@ ion-content {
   height: 9px;
   margin-right: 6px;
   border-radius: 50%;
-  background: var(--ion-color-medium);
-  transition: background 0.3s;
+  // Offline: red, clearly different from the green "in sync" state.
+  background: var(--ion-color-danger);
+  box-shadow: 0 0 0 4px rgb(var(--ion-color-danger-rgb) / 20%);
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
 
   &.online {
     background: var(--ion-color-success);
@@ -29,6 +33,7 @@ ion-content {
 
   &.connecting {
     background: var(--ion-color-warning);
+    box-shadow: none;
     animation: pulse 1.2s ease-in-out infinite;
   }
 }
