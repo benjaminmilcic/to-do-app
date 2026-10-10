@@ -30,6 +30,20 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="ToDo" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Apply the saved appearance before the app starts, so dark mode does
+         not flash light first. Same logic and key as ThemeService. -->
+    <script>
+      (function () {
+        var theme = 'system';
+        try {
+          theme = localStorage.getItem('todo.theme') || 'system';
+        } catch (e) {}
+        var dark =
+          theme === 'dark' ||
+          (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('ion-palette-dark');
+      })();
+    </script>
   </head>
 
   <body>

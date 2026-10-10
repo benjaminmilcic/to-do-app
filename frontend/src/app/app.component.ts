@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { close } from 'ionicons/icons';
 import { AppUpdateService } from './core/app-update.service';
+import { ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,8 @@ import { AppUpdateService } from './core/app-update.service';
 export class AppComponent {
   constructor() {
     addIcons({ close });
+    // Applies the saved appearance (also on the sign-in page).
+    inject(ThemeService);
     inject(AppUpdateService).start();
   }
 }

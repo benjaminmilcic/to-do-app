@@ -14,8 +14,29 @@
 @import '@ionic/angular/css/padding.css';
 @import '@ionic/angular/css/flex-utils.css';
 
-/* Dark mode follows the operating system setting. */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* Dark mode = class "ion-palette-dark" on <html>, set by ThemeService
+   (System / Light / Dark switch in the account menu). */
+@import '@ionic/angular/css/palettes/dark.class.css';
+
+/* Dialogs and menus use the same surfaces as the rest of the app (Ionic's
+   default dark backgrounds are neutral black/grey). */
+ion-popover {
+  --background: var(--app-surface);
+  // Used by Ionic for the list (including its padding) and its items.
+  --ion-item-background: var(--app-surface);
+}
+
+ion-modal {
+  --background: var(--app-surface);
+
+  ion-toolbar {
+    --background: var(--app-surface);
+  }
+
+  ion-content {
+    --background: var(--app-surface);
+  }
+}
 
 body {
   -webkit-font-smoothing: antialiased;

@@ -56,6 +56,11 @@
         <ion-label>{{ 'language.label' | transloco }}</ion-label>
         <app-language-switch slot="end" />
       </ion-item>
+      <ion-item class="language-item">
+        <ion-icon slot="start" name="contrast-outline" />
+        <ion-label>{{ 'theme.label' | transloco }}</ion-label>
+        <app-theme-switch slot="end" />
+      </ion-item>
       @if (clientConfig.apkDownloadUrl; as apk) {
         <ion-item [href]="apk" download detail="false">
           <ion-icon slot="start" name="download-outline" />

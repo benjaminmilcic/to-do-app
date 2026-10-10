@@ -48,6 +48,7 @@ import {
   close,
   checkmarkDoneOutline,
   cloudOfflineOutline,
+  contrastOutline,
   documentTextOutline,
   downloadOutline,
   languageOutline,
@@ -65,6 +66,7 @@ import {
   VoiceInputService,
 } from '../core/voice-input.service';
 import { LanguageSwitchComponent } from '../shared/language-switch.component';
+import { ThemeSwitchComponent } from '../shared/theme-switch.component';
 import { VoiceWaveformComponent } from '../shared/voice-waveform.component';
 import { TodoEditComponent, type EditResult } from './todo-edit.component';
 import { TodoStore } from './todo.store';
@@ -102,6 +104,7 @@ type Filter = 'open' | 'done';
     IonTitle,
     IonToolbar,
     LanguageSwitchComponent,
+    ThemeSwitchComponent,
     TranslocoPipe,
     VoiceWaveformComponent,
   ],
@@ -148,6 +151,7 @@ export class TodosPage {
       checkmarkDoneOutline,
       close,
       cloudOfflineOutline,
+      contrastOutline,
       documentTextOutline,
       downloadOutline,
       languageOutline,

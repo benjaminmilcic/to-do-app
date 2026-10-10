@@ -34,7 +34,9 @@
   downloaded; the Android app compares its build number with
   `/downloads/version.json` and offers the new APK.
 - Due dates with optional time, notes, drag & drop ordering, undo for
-  deletions, dark mode.
+  deletions.
+- **Dark mode** – System / Light / Dark switch in the account menu; "System"
+  follows the operating system live. The choice is stored in localStorage.
 - **German, English, Croatian** – switchable on the sign-in page and in the
   account menu ([Transloco](https://jsverse.github.io/transloco/)); the choice
   is stored in localStorage, the browser language is the default.

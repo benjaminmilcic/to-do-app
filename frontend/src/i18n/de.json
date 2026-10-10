@@ -8,6 +8,12 @@
     "en": "English",
     "hr": "Hrvatski"
   },
+  "theme": {
+    "label": "Darstellung",
+    "system": "Wie System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
   "auth": {
     "login": "Anmelden",
     "register": "Registrieren",
