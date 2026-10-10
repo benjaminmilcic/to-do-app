@@ -165,10 +165,12 @@
     </form>
 
     <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)">
-      <ion-segment-button value="open">
+      <ion-segment-button value="open" layout="icon-start">
+        <ion-icon name="ellipse-outline" aria-hidden="true" />
         <ion-label>{{ 'todos.open' | transloco }} · {{ store.open().length }}</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="done">
+      <ion-segment-button value="done" layout="icon-start">
+        <ion-icon name="checkmark-circle-outline" aria-hidden="true" />
         <ion-label>{{ 'todos.done' | transloco }} · {{ store.done().length }}</ion-label>
       </ion-segment-button>
     </ion-segment>
