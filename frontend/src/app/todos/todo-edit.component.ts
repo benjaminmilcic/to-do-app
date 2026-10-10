@@ -97,7 +97,6 @@ export type EditResult =
         </div>
         <ion-button
           class="delete"
-          expand="block"
           fill="outline"
           shape="round"
           color="danger"
@@ -150,6 +149,8 @@ export type EditResult =
     }
     .delete {
       margin-top: 16px;
+      /* As wide as its label, not the whole form (flex items stretch). */
+      align-self: center;
     }
   `,
   imports: [
