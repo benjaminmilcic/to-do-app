@@ -5,6 +5,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonTextarea,
   IonTitle,
@@ -12,6 +13,8 @@ import {
   ModalController,
 } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { addIcons } from 'ionicons';
+import { checkmark, close, trashOutline } from 'ionicons/icons';
 import type { Todo } from '../core/api';
 import type { TodoPatch } from './todo.store';
 
@@ -23,13 +26,29 @@ export type EditResult =
   selector: 'app-todo-edit',
   template: `
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="edit-toolbar">
         <ion-buttons slot="start">
-          <ion-button (click)="cancel()">{{ 'edit.cancel' | transloco }}</ion-button>
+          <ion-button
+            fill="outline"
+            shape="round"
+            color="medium"
+            (click)="cancel()"
+          >
+            <ion-icon slot="start" name="close" aria-hidden="true" />
+            {{ 'edit.cancel' | transloco }}
+          </ion-button>
         </ion-buttons>
         <ion-title>{{ 'edit.heading' | transloco }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button strong [disabled]="!title.trim()" (click)="save()">
+          <ion-button
+            fill="outline"
+            shape="round"
+            color="primary"
+            strong
+            [disabled]="!title.trim()"
+            (click)="save()"
+          >
+            <ion-icon slot="start" name="checkmark" aria-hidden="true" />
             {{ 'edit.save' | transloco }}
           </ion-button>
         </ion-buttons>
@@ -79,22 +98,42 @@ export type EditResult =
         <ion-button
           class="delete"
           expand="block"
-          fill="clear"
+          fill="outline"
+          shape="round"
           color="danger"
           (click)="remove()"
         >
+          <ion-icon slot="start" name="trash-outline" aria-hidden="true" />
           {{ 'edit.delete' | transloco }}
         </ion-button>
       </form>
     </ion-content>
   `,
   styles: `
+    /* A light tint of the brand colour, so the header stands out from the
+       form without competing with it. */
+    .edit-toolbar {
+      --background: color-mix(
+        in srgb,
+        var(--ion-color-primary) 10%,
+        var(--app-surface)
+      );
+      /* Keep the buttons clear of the dialog's rounded corners. */
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
+    .edit-toolbar ion-buttons {
+      gap: 8px;
+      padding-inline: 4px;
+    }
     .fields {
       display: flex;
       flex-direction: column;
       gap: 16px;
       max-width: 560px;
       margin: 0 auto;
+      /* Room between the header and the floating label of the first field. */
+      padding-top: 12px;
     }
     .due {
       display: grid;
@@ -119,6 +158,7 @@ export type EditResult =
     IonButtons,
     IonContent,
     IonHeader,
+    IonIcon,
     IonInput,
     IonTextarea,
     IonTitle,
@@ -128,6 +168,10 @@ export type EditResult =
 })
 export class TodoEditComponent implements OnInit {
   private readonly modal = inject(ModalController);
+
+  constructor() {
+    addIcons({ checkmark, close, trashOutline });
+  }
 
   /** Set through ModalController componentProps. */
   @Input({ required: true }) todo!: Todo;
