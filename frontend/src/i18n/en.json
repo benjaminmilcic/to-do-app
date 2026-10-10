@@ -41,6 +41,7 @@
     "account": "Account",
     "apk": "Android app (APK)",
     "logout": "Sign out",
+    "closeMenu": "Close menu",
     "newTodo": "New task …",
     "newTodoLabel": "New task",
     "add": "Add",

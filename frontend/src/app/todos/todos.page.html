@@ -35,11 +35,21 @@
 >
   <ng-template>
     <ion-list lines="none" class="account">
-      <ion-item>
+      <ion-item class="account-header">
         <ion-label>
           <h2>{{ auth.user()?.displayName }}</h2>
           <p>{{ auth.user()?.email }}</p>
         </ion-label>
+        <button
+          slot="end"
+          type="button"
+          class="icon-button menu-close"
+          [attr.aria-label]="'todos.closeMenu' | transloco"
+          [title]="'todos.closeMenu' | transloco"
+          (click)="accountPopover.dismiss()"
+        >
+          <ion-icon name="close" />
+        </button>
       </ion-item>
       <ion-item class="language-item">
         <ion-icon slot="start" name="language-outline" />

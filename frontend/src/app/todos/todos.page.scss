@@ -354,3 +354,16 @@ ion-popover.account-popover {
   }
 }
 
+
+// Close button in the top right corner of the account menu.
+.account-header {
+  --inner-padding-end: 4px;
+
+  .menu-close {
+    align-self: flex-start;
+    margin-top: 4px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+  }
+}
