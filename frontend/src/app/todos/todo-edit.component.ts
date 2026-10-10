@@ -98,8 +98,16 @@ export type EditResult =
     }
     .due {
       display: grid;
-      grid-template-columns: 3fr 2fr;
+      /* The time label is the longer one in every language
+         ("Vrijeme (neobavezno)"), the date value needs less room. */
+      grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
       gap: 12px;
+    }
+    /* Very narrow phones: date and time below each other. */
+    @media (max-width: 359px) {
+      .due {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
     .delete {
       margin-top: 16px;
