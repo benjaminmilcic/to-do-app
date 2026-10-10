@@ -28,7 +28,7 @@ export class TodoStore {
   private readonly _todos = signal<Todo[]>([]);
   readonly loading = signal(false);
   readonly loaded = signal(false);
-  /** User-facing error messages (shown as toasts). */
+  /** Translation keys of user-facing errors (shown as toasts). */
   readonly errors$ = new Subject<string>();
 
   readonly open = computed(() =>
@@ -93,7 +93,7 @@ export class TodoStore {
     } catch {
       if (!this.loaded()) {
         this.errors$.next(
-          'Aufgaben konnten nicht geladen werden. Bist du offline?',
+          'todos.errors.load',
         );
       }
     } finally {
@@ -128,7 +128,7 @@ export class TodoStore {
         title: todo.title,
         dueDate,
       }),
-      'Aufgabe konnte nicht gespeichert werden.',
+      'todos.errors.save',
     );
   }
 
@@ -149,7 +149,7 @@ export class TodoStore {
 
     await this.write(
       this.http.patch<Todo>(`${API_URL}/todos/${id}`, patch),
-      'Änderung konnte nicht gespeichert werden.',
+      'todos.errors.update',
     );
   }
 
@@ -161,7 +161,7 @@ export class TodoStore {
     this.applyDelete([id]);
     await this.write(
       this.http.delete<void>(`${API_URL}/todos/${id}`),
-      'Aufgabe konnte nicht gelöscht werden.',
+      'todos.errors.delete',
     );
   }
 
@@ -176,7 +176,7 @@ export class TodoStore {
         dueDate: todo.dueDate,
         dueTime: todo.dueTime,
       }),
-      'Aufgabe konnte nicht wiederhergestellt werden.',
+      'todos.errors.restore',
     );
     // The server creates restored todos as open and on top; put back the
     // original state.
@@ -191,7 +191,7 @@ export class TodoStore {
     this.applyDelete(ids);
     await this.write(
       this.http.delete<{ ids: string[] }>(`${API_URL}/todos/completed`),
-      'Erledigte Aufgaben konnten nicht gelöscht werden.',
+      'todos.errors.clearDone',
     );
   }
 
@@ -223,7 +223,7 @@ export class TodoStore {
 
   private async write<T>(
     request: Observable<T>,
-    message: string,
+    errorKey: string,
   ): Promise<void> {
     try {
       const result = await firstValueFrom(request);
@@ -232,7 +232,7 @@ export class TodoStore {
       }
       void this.saveCache();
     } catch {
-      this.errors$.next(message);
+      this.errors$.next(errorKey);
       await this.reload();
     }
   }

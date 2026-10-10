@@ -33,7 +33,12 @@
 - **Update hints** – the PWA offers to reload as soon as a new deployment is
   downloaded; the Android app compares its build number with
   `/downloads/version.json` and offers the new APK.
-- Due dates, notes, drag & drop ordering, undo for deletions, dark mode.
+- Due dates with optional time, notes, drag & drop ordering, undo for
+  deletions, dark mode.
+- **German, English, Croatian** – switchable on the sign-in page and in the
+  account menu ([Transloco](https://jsverse.github.io/transloco/)); the choice
+  is stored in localStorage, the browser language is the default.
+  Translations live in `frontend/src/i18n/*.json`.
 
 ## Tech stack
 

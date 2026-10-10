@@ -6,10 +6,17 @@
   min-height: 100%;
   max-width: 420px;
   margin: 0 auto;
-  padding: calc(var(--ion-safe-area-top, 0px) + 48px) 20px 32px;
+  padding: calc(var(--ion-safe-area-top, 0px) + 16px) 20px 32px;
   display: flex;
   flex-direction: column;
   gap: 28px;
+}
+
+// Language switch in the top right corner, above the logo.
+.language-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -4px;
 }
 
 .brand {

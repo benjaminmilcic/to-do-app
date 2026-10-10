@@ -4,6 +4,7 @@ import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { ToastController } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 import { API_ORIGIN } from './api';
 
 /**
@@ -39,6 +40,7 @@ interface ApkVersion {
 export class AppUpdateService {
   private readonly updates = inject(SwUpdate);
   private readonly toasts = inject(ToastController);
+  private readonly transloco = inject(TranslocoService);
 
   private updateReady = false;
   /** Android: the APK version the hint was last shown (or dismissed) for. */
@@ -63,7 +65,7 @@ export class AppUpdateService {
     this.updates.versionUpdates.subscribe((event) => {
       if (event.type === 'VERSION_READY' && !this.updateReady) {
         this.updateReady = true;
-        void this.showHint('Neue Version verfügbar', 'Aktualisieren', () =>
+        void this.showHint('update.web', 'update.webAction', {}, () =>
           document.location.reload(),
         );
       }
@@ -141,8 +143,9 @@ export class AppUpdateService {
       }
       this.apkHintShownFor = latest.versionCode;
       await this.showHint(
-        `Neue App-Version ${latest.versionName} verfügbar`,
-        'Herunterladen',
+        'update.apk',
+        'update.apkAction',
+        { version: latest.versionName },
         () => void Browser.open({ url: latest.url }),
       );
     } catch {
@@ -155,16 +158,17 @@ export class AppUpdateService {
   // ---------------------------------------------------------------------------
 
   private async showHint(
-    message: string,
-    action: string,
+    messageKey: string,
+    actionKey: string,
+    params: Record<string, string>,
     handler: () => void,
   ): Promise<void> {
     const toast = await this.toasts.create({
-      message,
+      message: this.transloco.translate(messageKey, params),
       position: 'bottom',
       color: 'primary',
       buttons: [
-        { text: action, handler },
+        { text: this.transloco.translate(actionKey), handler },
         { icon: 'close', role: 'cancel', side: 'end' },
       ],
     });

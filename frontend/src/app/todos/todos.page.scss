@@ -233,3 +233,12 @@ ion-item-sliding {
 .clear-done {
   margin-top: 4px;
 }
+
+// Wide enough for the language switch next to its label.
+ion-popover.account-popover {
+  --width: 300px;
+}
+
+.language-item app-language-switch {
+  margin-inline-start: 8px;
+}

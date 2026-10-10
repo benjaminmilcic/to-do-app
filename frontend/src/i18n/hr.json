@@ -1,0 +1,94 @@
+{
+  "app": {
+    "tagline": "Tvoji zadaci. Na svim uređajima. Odmah sinkronizirani."
+  },
+  "language": {
+    "label": "Jezik",
+    "de": "Deutsch",
+    "en": "English",
+    "hr": "Hrvatski"
+  },
+  "auth": {
+    "login": "Prijava",
+    "register": "Registracija",
+    "name": "Ime (neobavezno)",
+    "email": "E-pošta",
+    "password": "Lozinka",
+    "passwordHint": "Najmanje 8 znakova",
+    "submitLogin": "Prijavi se",
+    "submitRegister": "Izradi račun",
+    "or": "ili",
+    "google": "Nastavi s Googleom",
+    "downloadApk": "Preuzmi Android aplikaciju",
+    "loginFailed": "Prijava nije uspjela.",
+    "registerFailed": "Registracija nije uspjela.",
+    "callbackBusy": "Prijava se dovršava …",
+    "callbackCancelled": "Prijava putem Googlea je prekinuta.",
+    "callbackFailed": "Prijava nije uspjela.",
+    "backToLogin": "Natrag na prijavu"
+  },
+  "errors": {
+    "offline": "Nema veze s poslužiteljem. Jesi li na mreži?",
+    "tooManyAttempts": "Previše pokušaja. Pričekaj minutu.",
+    "invalidCredentials": "E-pošta ili lozinka nisu točni.",
+    "emailTaken": "Za ovu adresu e-pošte već postoji račun.",
+    "codeExpired": "Prijava je istekla. Pokušaj ponovno.",
+    "passwordTooShort": "Lozinka mora imati najmanje 8 znakova.",
+    "invalidEmail": "Unesi valjanu adresu e-pošte."
+  },
+  "todos": {
+    "title": "Zadaci",
+    "account": "Račun",
+    "apk": "Android aplikacija (APK)",
+    "logout": "Odjava",
+    "newTodo": "Novi zadatak …",
+    "newTodoLabel": "Novi zadatak",
+    "add": "Dodaj",
+    "open": "Otvoreno",
+    "done": "Gotovo",
+    "offlineHint": "Izvan mreže – promjene s drugih uređaja pojavit će se čim se veza vrati.",
+    "loading": "Učitavanje zadataka …",
+    "emptyOpenTitle": "Sve je gotovo",
+    "emptyOpenText": "Gore unesi novi zadatak.",
+    "emptyDoneTitle": "Još ništa nije gotovo",
+    "emptyDoneText": "Ovdje se pojavljuju dovršeni zadaci.",
+    "markOpen": "Označi kao otvoreno",
+    "markDone": "Označi kao gotovo",
+    "dateFormat": "EEE, d. MMM",
+    "dueTime": "{{ time }} h",
+    "note": "Bilješka",
+    "clearDone": "Obriši gotove",
+    "deleted": "Zadatak obrisan",
+    "undo": "Poništi",
+    "sync": {
+      "online": "Sinkronizirano",
+      "connecting": "Povezivanje …",
+      "offline": "Izvan mreže"
+    },
+    "errors": {
+      "load": "Zadaci se nisu mogli učitati. Jesi li izvan mreže?",
+      "save": "Zadatak se nije mogao spremiti.",
+      "update": "Promjena se nije mogla spremiti.",
+      "delete": "Zadatak se nije mogao obrisati.",
+      "restore": "Zadatak se nije mogao vratiti.",
+      "clearDone": "Gotovi zadaci nisu se mogli obrisati."
+    }
+  },
+  "edit": {
+    "heading": "Zadatak",
+    "cancel": "Odustani",
+    "save": "Spremi",
+    "title": "Naslov",
+    "notes": "Bilješke",
+    "dueDate": "Rok",
+    "dueTime": "Vrijeme (neobavezno)",
+    "dueTimeHint": "Najprije odaberi datum",
+    "delete": "Obriši zadatak"
+  },
+  "update": {
+    "web": "Dostupna je nova verzija",
+    "webAction": "Ažuriraj",
+    "apk": "Dostupna je nova verzija aplikacije {{ version }}",
+    "apkAction": "Preuzmi"
+  }
+}

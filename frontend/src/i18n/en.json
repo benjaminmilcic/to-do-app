@@ -1,0 +1,94 @@
+{
+  "app": {
+    "tagline": "Your tasks. On every device. Instantly in sync."
+  },
+  "language": {
+    "label": "Language",
+    "de": "Deutsch",
+    "en": "English",
+    "hr": "Hrvatski"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "name": "Name (optional)",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 8 characters",
+    "submitLogin": "Sign in",
+    "submitRegister": "Create account",
+    "or": "or",
+    "google": "Continue with Google",
+    "downloadApk": "Download the Android app",
+    "loginFailed": "Sign-in failed.",
+    "registerFailed": "Sign-up failed.",
+    "callbackBusy": "Completing sign-in …",
+    "callbackCancelled": "Signing in with Google was cancelled.",
+    "callbackFailed": "Sign-in failed.",
+    "backToLogin": "Back to sign-in"
+  },
+  "errors": {
+    "offline": "No connection to the server. Are you online?",
+    "tooManyAttempts": "Too many attempts. Please wait a minute.",
+    "invalidCredentials": "Wrong email or password.",
+    "emailTaken": "An account with this email address already exists.",
+    "codeExpired": "The sign-in has expired. Please try again.",
+    "passwordTooShort": "The password must be at least 8 characters long.",
+    "invalidEmail": "Please enter a valid email address."
+  },
+  "todos": {
+    "title": "Tasks",
+    "account": "Account",
+    "apk": "Android app (APK)",
+    "logout": "Sign out",
+    "newTodo": "New task …",
+    "newTodoLabel": "New task",
+    "add": "Add",
+    "open": "Open",
+    "done": "Done",
+    "offlineHint": "Offline – changes from other devices will appear once you are back online.",
+    "loading": "Loading tasks …",
+    "emptyOpenTitle": "All done",
+    "emptyOpenText": "Add a new task above.",
+    "emptyDoneTitle": "Nothing done yet",
+    "emptyDoneText": "Completed tasks end up here.",
+    "markOpen": "Mark as open",
+    "markDone": "Mark as done",
+    "dateFormat": "EEE, d MMM",
+    "dueTime": "{{ time }}",
+    "note": "Note",
+    "clearDone": "Delete completed",
+    "deleted": "Task deleted",
+    "undo": "Undo",
+    "sync": {
+      "online": "In sync",
+      "connecting": "Connecting …",
+      "offline": "Offline"
+    },
+    "errors": {
+      "load": "Tasks could not be loaded. Are you offline?",
+      "save": "The task could not be saved.",
+      "update": "The change could not be saved.",
+      "delete": "The task could not be deleted.",
+      "restore": "The task could not be restored.",
+      "clearDone": "Completed tasks could not be deleted."
+    }
+  },
+  "edit": {
+    "heading": "Task",
+    "cancel": "Cancel",
+    "save": "Save",
+    "title": "Title",
+    "notes": "Notes",
+    "dueDate": "Due on",
+    "dueTime": "Time (optional)",
+    "dueTimeHint": "Pick a date first",
+    "delete": "Delete task"
+  },
+  "update": {
+    "web": "New version available",
+    "webAction": "Update",
+    "apk": "New app version {{ version }} available",
+    "apkAction": "Download"
+  }
+}

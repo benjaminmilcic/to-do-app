@@ -30,6 +30,7 @@ import {
   type ItemReorderEventDetail,
   type RefresherEventDetail,
 } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
   add,
@@ -38,13 +39,16 @@ import {
   cloudOfflineOutline,
   documentTextOutline,
   downloadOutline,
+  languageOutline,
   logOutOutline,
   trashOutline,
 } from 'ionicons/icons';
 import type { Todo } from '../core/api';
 import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
+import { LanguageService } from '../core/i18n';
 import { SyncService } from '../core/sync.service';
+import { LanguageSwitchComponent } from '../shared/language-switch.component';
 import { TodoEditComponent, type EditResult } from './todo-edit.component';
 import { TodoStore } from './todo.store';
 
@@ -79,6 +83,8 @@ type Filter = 'open' | 'done';
     IonSegmentButton,
     IonTitle,
     IonToolbar,
+    LanguageSwitchComponent,
+    TranslocoPipe,
   ],
 })
 export class TodosPage {
@@ -86,6 +92,8 @@ export class TodosPage {
   protected readonly auth = inject(AuthService);
   protected readonly sync = inject(SyncService);
   protected readonly clientConfig = inject(ClientConfigService);
+  protected readonly language = inject(LanguageService);
+  private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(ModalController);
   private readonly toasts = inject(ToastController);
 
@@ -118,6 +126,7 @@ export class TodosPage {
       cloudOfflineOutline,
       documentTextOutline,
       downloadOutline,
+      languageOutline,
       logOutOutline,
       trashOutline,
     });
@@ -126,7 +135,7 @@ export class TodosPage {
     destroyRef.onDestroy(() => clearInterval(this.clock));
     this.store.errors$
       .pipe(takeUntilDestroyed(destroyRef))
-      .subscribe((message) => void this.toast(message));
+      .subscribe((key) => void this.toast(this.transloco.translate(key)));
 
     void this.clientConfig.load();
     void this.store.start();
@@ -156,12 +165,12 @@ export class TodosPage {
     await sliding?.close();
     void this.store.remove(todo.id);
     const toast = await this.toasts.create({
-      message: 'Aufgabe gelöscht',
+      message: this.transloco.translate('todos.deleted'),
       duration: 4000,
       position: 'bottom',
       buttons: [
         {
-          text: 'Rückgängig',
+          text: this.transloco.translate('todos.undo'),
           handler: () => void this.store.restore(todo),
         },
       ],

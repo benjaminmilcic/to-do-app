@@ -13,11 +13,13 @@ import {
   IonSpinner,
   IonText,
 } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { downloadOutline, logoGoogle } from 'ionicons/icons';
 import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
-import { errorMessage } from '../shared/error-message';
+import { errorMessageKey } from '../shared/error-message';
+import { LanguageSwitchComponent } from '../shared/language-switch.component';
 
 type Mode = 'login' | 'register';
 
@@ -37,6 +39,8 @@ type Mode = 'login' | 'register';
     IonSegmentButton,
     IonSpinner,
     IonText,
+    LanguageSwitchComponent,
+    TranslocoPipe,
   ],
 })
 export class LoginPage {
@@ -46,6 +50,7 @@ export class LoginPage {
 
   protected readonly mode = signal<Mode>('login');
   protected readonly busy = signal(false);
+  /** Translation key of the current error message. */
   protected readonly error = signal<string | null>(null);
 
   protected email = '';
@@ -78,11 +83,9 @@ export class LoginPage {
       await this.router.navigateByUrl('/', { replaceUrl: true });
     } catch (error) {
       this.error.set(
-        errorMessage(
+        errorMessageKey(
           error,
-          this.mode() === 'login'
-            ? 'Anmeldung fehlgeschlagen.'
-            : 'Registrierung fehlgeschlagen.',
+          this.mode() === 'login' ? 'auth.loginFailed' : 'auth.registerFailed',
         ),
       );
     } finally {

@@ -1,9 +1,13 @@
 <ion-content class="auth-content">
   <main class="auth-shell">
+    <div class="language-bar">
+      <app-language-switch />
+    </div>
+
     <header class="brand">
       <img src="assets/icon/logo.svg" alt="" width="72" height="72" />
       <h1>ToDo</h1>
-      <p>Deine Aufgaben. Auf allen Geräten. Sofort synchron.</p>
+      <p>{{ 'app.tagline' | transloco }}</p>
     </header>
 
     <section class="card">
@@ -12,17 +16,17 @@
         (ionChange)="setMode($event.detail.value)"
       >
         <ion-segment-button value="login">
-          <ion-label>Anmelden</ion-label>
+          <ion-label>{{ 'auth.login' | transloco }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="register">
-          <ion-label>Registrieren</ion-label>
+          <ion-label>{{ 'auth.register' | transloco }}</ion-label>
         </ion-segment-button>
       </ion-segment>
 
       <form (ngSubmit)="submit()" #form="ngForm">
         @if (mode() === 'register') {
           <ion-input
-            label="Name (optional)"
+            [label]="'auth.name' | transloco"
             labelPlacement="floating"
             fill="outline"
             name="displayName"
@@ -33,7 +37,7 @@
         }
 
         <ion-input
-          label="E-Mail"
+          [label]="'auth.email' | transloco"
           labelPlacement="floating"
           fill="outline"
           type="email"
@@ -45,7 +49,7 @@
         />
 
         <ion-input
-          label="Passwort"
+          [label]="'auth.password' | transloco"
           labelPlacement="floating"
           fill="outline"
           type="password"
@@ -53,14 +57,14 @@
           required
           [minlength]="mode() === 'register' ? 8 : 1"
           [autocomplete]="mode() === 'register' ? 'new-password' : 'current-password'"
-          [helperText]="mode() === 'register' ? 'Mindestens 8 Zeichen' : ''"
+          [helperText]="mode() === 'register' ? ('auth.passwordHint' | transloco) : ''"
           [(ngModel)]="password"
         >
           <ion-input-password-toggle slot="end" />
         </ion-input>
 
-        @if (error(); as message) {
-          <ion-text color="danger" class="error" role="alert">{{ message }}</ion-text>
+        @if (error(); as key) {
+          <ion-text color="danger" class="error" role="alert">{{ key | transloco }}</ion-text>
         }
 
         <ion-button
@@ -72,13 +76,13 @@
           @if (busy()) {
             <ion-spinner name="dots" />
           } @else {
-            {{ mode() === 'login' ? 'Anmelden' : 'Konto erstellen' }}
+            {{ (mode() === 'login' ? 'auth.submitLogin' : 'auth.submitRegister') | transloco }}
           }
         </ion-button>
       </form>
 
       @if (clientConfig.config().googleLogin) {
-        <div class="divider"><span>oder</span></div>
+        <div class="divider"><span>{{ 'auth.or' | transloco }}</span></div>
         <ion-button
           expand="block"
           fill="outline"
@@ -87,7 +91,7 @@
           (click)="google()"
         >
           <ion-icon slot="start" name="logo-google" />
-          Mit Google fortfahren
+          {{ 'auth.google' | transloco }}
         </ion-button>
       }
     </section>
@@ -95,7 +99,7 @@
     @if (clientConfig.apkDownloadUrl; as apk) {
       <a class="apk-link" [href]="apk" download>
         <ion-icon name="download-outline" />
-        Android-App herunterladen
+        {{ 'auth.downloadApk' | transloco }}
       </a>
     }
   </main>

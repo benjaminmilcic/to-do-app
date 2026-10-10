@@ -1,0 +1,94 @@
+{
+  "app": {
+    "tagline": "Deine Aufgaben. Auf allen Geräten. Sofort synchron."
+  },
+  "language": {
+    "label": "Sprache",
+    "de": "Deutsch",
+    "en": "English",
+    "hr": "Hrvatski"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "name": "Name (optional)",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "passwordHint": "Mindestens 8 Zeichen",
+    "submitLogin": "Anmelden",
+    "submitRegister": "Konto erstellen",
+    "or": "oder",
+    "google": "Mit Google fortfahren",
+    "downloadApk": "Android-App herunterladen",
+    "loginFailed": "Anmeldung fehlgeschlagen.",
+    "registerFailed": "Registrierung fehlgeschlagen.",
+    "callbackBusy": "Anmeldung wird abgeschlossen …",
+    "callbackCancelled": "Die Anmeldung mit Google wurde abgebrochen.",
+    "callbackFailed": "Die Anmeldung ist fehlgeschlagen.",
+    "backToLogin": "Zurück zur Anmeldung"
+  },
+  "errors": {
+    "offline": "Keine Verbindung zum Server. Bist du online?",
+    "tooManyAttempts": "Zu viele Versuche. Bitte warte eine Minute.",
+    "invalidCredentials": "E-Mail oder Passwort ist falsch.",
+    "emailTaken": "Für diese E-Mail-Adresse gibt es schon ein Konto.",
+    "codeExpired": "Der Login ist abgelaufen. Bitte versuche es noch einmal.",
+    "passwordTooShort": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+    "invalidEmail": "Bitte gib eine gültige E-Mail-Adresse ein."
+  },
+  "todos": {
+    "title": "Aufgaben",
+    "account": "Konto",
+    "apk": "Android-App (APK)",
+    "logout": "Abmelden",
+    "newTodo": "Neue Aufgabe …",
+    "newTodoLabel": "Neue Aufgabe",
+    "add": "Hinzufügen",
+    "open": "Offen",
+    "done": "Erledigt",
+    "offlineHint": "Offline – Änderungen anderer Geräte erscheinen, sobald die Verbindung zurück ist.",
+    "loading": "Lade Aufgaben …",
+    "emptyOpenTitle": "Alles erledigt",
+    "emptyOpenText": "Trag oben eine neue Aufgabe ein.",
+    "emptyDoneTitle": "Noch nichts erledigt",
+    "emptyDoneText": "Abgehakte Aufgaben landen hier.",
+    "markOpen": "Als offen markieren",
+    "markDone": "Als erledigt markieren",
+    "dateFormat": "EE, d. MMM",
+    "dueTime": "{{ time }} Uhr",
+    "note": "Notiz",
+    "clearDone": "Erledigte löschen",
+    "deleted": "Aufgabe gelöscht",
+    "undo": "Rückgängig",
+    "sync": {
+      "online": "Synchronisiert",
+      "connecting": "Verbinde …",
+      "offline": "Offline"
+    },
+    "errors": {
+      "load": "Aufgaben konnten nicht geladen werden. Bist du offline?",
+      "save": "Aufgabe konnte nicht gespeichert werden.",
+      "update": "Änderung konnte nicht gespeichert werden.",
+      "delete": "Aufgabe konnte nicht gelöscht werden.",
+      "restore": "Aufgabe konnte nicht wiederhergestellt werden.",
+      "clearDone": "Erledigte Aufgaben konnten nicht gelöscht werden."
+    }
+  },
+  "edit": {
+    "heading": "Aufgabe",
+    "cancel": "Abbrechen",
+    "save": "Sichern",
+    "title": "Titel",
+    "notes": "Notizen",
+    "dueDate": "Fällig am",
+    "dueTime": "Uhrzeit (optional)",
+    "dueTimeHint": "Erst ein Datum wählen",
+    "delete": "Aufgabe löschen"
+  },
+  "update": {
+    "web": "Neue Version verfügbar",
+    "webAction": "Aktualisieren",
+    "apk": "Neue App-Version {{ version }} verfügbar",
+    "apkAction": "Herunterladen"
+  }
+}

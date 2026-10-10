@@ -1,8 +1,9 @@
 import { Component, inject, input, type OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonSpinner } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../core/auth.service';
-import { errorMessage } from '../shared/error-message';
+import { errorMessageKey } from '../shared/error-message';
 
 /**
  * Landing page after the Google login. The backend redirects here with a
@@ -13,14 +14,14 @@ import { errorMessage } from '../shared/error-message';
   template: `
     <ion-content class="ion-padding">
       <div class="center">
-        @if (message(); as text) {
-          <p>{{ text }}</p>
+        @if (message(); as key) {
+          <p>{{ key | transloco }}</p>
           <ion-button routerLink="/login" [replaceUrl]="true">
-            Zurück zur Anmeldung
+            {{ 'auth.backToLogin' | transloco }}
           </ion-button>
         } @else {
           <ion-spinner name="crescent" />
-          <p>Anmeldung wird abgeschlossen …</p>
+          <p>{{ 'auth.callbackBusy' | transloco }}</p>
         }
       </div>
     </ion-content>
@@ -36,7 +37,7 @@ import { errorMessage } from '../shared/error-message';
       text-align: center;
     }
   `,
-  imports: [IonButton, IonContent, IonSpinner, RouterLink],
+  imports: [IonButton, IonContent, IonSpinner, RouterLink, TranslocoPipe],
 })
 export class AuthCallbackPage implements OnInit {
   private readonly auth = inject(AuthService);
@@ -46,19 +47,20 @@ export class AuthCallbackPage implements OnInit {
   readonly code = input<string>();
   readonly error = input<string>();
 
+  /** Translation key of the message shown instead of the spinner. */
   protected readonly message = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     const code = this.code();
     if (this.error() || !code) {
-      this.message.set('Die Anmeldung mit Google wurde abgebrochen.');
+      this.message.set('auth.callbackCancelled');
       return;
     }
     try {
       await this.auth.completeGoogleLogin(code);
       await this.router.navigateByUrl('/', { replaceUrl: true });
     } catch (error) {
-      this.message.set(errorMessage(error, 'Die Anmeldung ist fehlgeschlagen.'));
+      this.message.set(errorMessageKey(error, 'auth.callbackFailed'));
     }
   }
 }

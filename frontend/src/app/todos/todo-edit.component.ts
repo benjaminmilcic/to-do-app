@@ -11,6 +11,7 @@ import {
   IonToolbar,
   ModalController,
 } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { Todo } from '../core/api';
 import type { TodoPatch } from './todo.store';
 
@@ -24,12 +25,12 @@ export type EditResult =
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button (click)="cancel()">Abbrechen</ion-button>
+          <ion-button (click)="cancel()">{{ 'edit.cancel' | transloco }}</ion-button>
         </ion-buttons>
-        <ion-title>Aufgabe</ion-title>
+        <ion-title>{{ 'edit.heading' | transloco }}</ion-title>
         <ion-buttons slot="end">
           <ion-button strong [disabled]="!title.trim()" (click)="save()">
-            Sichern
+            {{ 'edit.save' | transloco }}
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -37,7 +38,7 @@ export type EditResult =
     <ion-content class="ion-padding">
       <form class="fields" (ngSubmit)="save()">
         <ion-input
-          label="Titel"
+          [label]="'edit.title' | transloco"
           labelPlacement="floating"
           fill="outline"
           name="title"
@@ -46,7 +47,7 @@ export type EditResult =
           [(ngModel)]="title"
         />
         <ion-textarea
-          label="Notizen"
+          [label]="'edit.notes' | transloco"
           labelPlacement="floating"
           fill="outline"
           name="notes"
@@ -57,7 +58,7 @@ export type EditResult =
         />
         <div class="due">
           <ion-input
-            label="Fällig am"
+            [label]="'edit.dueDate' | transloco"
             labelPlacement="stacked"
             fill="outline"
             type="date"
@@ -65,13 +66,13 @@ export type EditResult =
             [(ngModel)]="dueDate"
           />
           <ion-input
-            label="Uhrzeit (optional)"
+            [label]="'edit.dueTime' | transloco"
             labelPlacement="stacked"
             fill="outline"
             type="time"
             name="dueTime"
             [disabled]="!dueDate"
-            [helperText]="dueDate ? '' : 'Erst ein Datum wählen'"
+            [helperText]="dueDate ? '' : ('edit.dueTimeHint' | transloco)"
             [(ngModel)]="dueTime"
           />
         </div>
@@ -82,7 +83,7 @@ export type EditResult =
           color="danger"
           (click)="remove()"
         >
-          Aufgabe löschen
+          {{ 'edit.delete' | transloco }}
         </ion-button>
       </form>
     </ion-content>
@@ -114,6 +115,7 @@ export type EditResult =
     IonTextarea,
     IonTitle,
     IonToolbar,
+    TranslocoPipe,
   ],
 })
 export class TodoEditComponent implements OnInit {

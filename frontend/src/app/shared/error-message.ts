@@ -1,31 +1,34 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-/** Turns an API error into a short German message for the user. */
-export function errorMessage(error: unknown, fallback: string): string {
+/**
+ * Maps an API error to the translation key of a short message for the user.
+ * Returns `fallbackKey` for errors without a more specific message.
+ */
+export function errorMessageKey(error: unknown, fallbackKey: string): string {
   if (!(error instanceof HttpErrorResponse)) {
-    return fallback;
+    return fallbackKey;
   }
   if (error.status === 0) {
-    return 'Keine Verbindung zum Server. Bist du online?';
+    return 'errors.offline';
   }
   if (error.status === 429) {
-    return 'Zu viele Versuche. Bitte warte eine Minute.';
+    return 'errors.tooManyAttempts';
   }
   const message: unknown = error.error?.message;
   const text = Array.isArray(message) ? message[0] : message;
   switch (text) {
     case 'Invalid email or password':
-      return 'E-Mail oder Passwort ist falsch.';
+      return 'errors.invalidCredentials';
     case 'An account with this email already exists':
-      return 'Für diese E-Mail-Adresse gibt es schon ein Konto.';
+      return 'errors.emailTaken';
     case 'Login code is invalid or expired':
-      return 'Der Login ist abgelaufen. Bitte versuche es noch einmal.';
+      return 'errors.codeExpired';
   }
   if (typeof text === 'string' && text.includes('password must be longer')) {
-    return 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+    return 'errors.passwordTooShort';
   }
   if (typeof text === 'string' && text.includes('email must be an email')) {
-    return 'Bitte gib eine gültige E-Mail-Adresse ein.';
+    return 'errors.invalidEmail';
   }
-  return fallback;
+  return fallbackKey;
 }

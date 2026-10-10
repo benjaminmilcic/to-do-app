@@ -1,22 +1,20 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>
-      <span class="title">Aufgaben</span>
+      <span class="title">{{ 'todos.title' | transloco }}</span>
     </ion-title>
     <ion-buttons slot="end">
       <span
         class="sync-dot"
         [class.online]="sync.status() === 'online'"
         [class.connecting]="sync.status() === 'connecting'"
-        [attr.title]="
-          sync.status() === 'online'
-            ? 'Synchronisiert'
-            : sync.status() === 'connecting'
-              ? 'Verbinde …'
-              : 'Offline'
-        "
+        [attr.title]="'todos.sync.' + sync.status() | transloco"
       ></span>
-      <ion-button id="account-trigger" class="account-button" aria-label="Konto">
+      <ion-button
+        id="account-trigger"
+        class="account-button"
+        [attr.aria-label]="'todos.account' | transloco"
+      >
         <ion-avatar class="avatar">
           @if (auth.user()?.avatarUrl; as url) {
             <img [src]="url" alt="" referrerpolicy="no-referrer" />
@@ -29,7 +27,12 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-popover #accountPopover trigger="account-trigger" triggerAction="click">
+<ion-popover
+  #accountPopover
+  class="account-popover"
+  trigger="account-trigger"
+  triggerAction="click"
+>
   <ng-template>
     <ion-list lines="none" class="account">
       <ion-item>
@@ -38,15 +41,20 @@
           <p>{{ auth.user()?.email }}</p>
         </ion-label>
       </ion-item>
+      <ion-item class="language-item">
+        <ion-icon slot="start" name="language-outline" />
+        <ion-label>{{ 'language.label' | transloco }}</ion-label>
+        <app-language-switch slot="end" />
+      </ion-item>
       @if (clientConfig.apkDownloadUrl; as apk) {
         <ion-item [href]="apk" download detail="false">
           <ion-icon slot="start" name="download-outline" />
-          <ion-label>Android-App (APK)</ion-label>
+          <ion-label>{{ 'todos.apk' | transloco }}</ion-label>
         </ion-item>
       }
       <ion-item button detail="false" (click)="logout(accountPopover)">
         <ion-icon slot="start" name="log-out-outline" color="danger" />
-        <ion-label color="danger">Abmelden</ion-label>
+        <ion-label color="danger">{{ 'todos.logout' | transloco }}</ion-label>
       </ion-item>
     </ion-list>
   </ng-template>
@@ -62,17 +70,17 @@
       <input
         name="title"
         [(ngModel)]="newTitle"
-        placeholder="Neue Aufgabe …"
+        [placeholder]="'todos.newTodo' | transloco"
         maxlength="500"
         autocomplete="off"
         enterkeyhint="done"
-        aria-label="Neue Aufgabe"
+        [attr.aria-label]="'todos.newTodoLabel' | transloco"
       />
       <ion-button
         type="submit"
         shape="round"
         [disabled]="!newTitle.trim()"
-        aria-label="Hinzufügen"
+        [attr.aria-label]="'todos.add' | transloco"
       >
         <ion-icon slot="icon-only" name="add" />
       </ion-button>
@@ -80,32 +88,32 @@
 
     <ion-segment [value]="filter()" (ionChange)="setFilter($event.detail.value)">
       <ion-segment-button value="open">
-        <ion-label>Offen · {{ store.open().length }}</ion-label>
+        <ion-label>{{ 'todos.open' | transloco }} · {{ store.open().length }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="done">
-        <ion-label>Erledigt · {{ store.done().length }}</ion-label>
+        <ion-label>{{ 'todos.done' | transloco }} · {{ store.done().length }}</ion-label>
       </ion-segment-button>
     </ion-segment>
 
     @if (sync.status() === 'offline' && store.loaded()) {
       <p class="offline-hint">
         <ion-icon name="cloud-offline-outline" />
-        Offline – Änderungen anderer Geräte erscheinen, sobald die Verbindung zurück ist.
+        {{ 'todos.offlineHint' | transloco }}
       </p>
     }
 
     @if (visible().length === 0) {
       <section class="empty">
         @if (!store.loaded() && store.loading()) {
-          <p>Lade Aufgaben …</p>
+          <p>{{ 'todos.loading' | transloco }}</p>
         } @else if (filter() === 'open') {
           <ion-icon name="checkmark-done-outline" />
-          <h2>Alles erledigt</h2>
-          <p>Trag oben eine neue Aufgabe ein.</p>
+          <h2>{{ 'todos.emptyOpenTitle' | transloco }}</h2>
+          <p>{{ 'todos.emptyOpenText' | transloco }}</p>
         } @else {
           <ion-icon name="checkmark-done-outline" />
-          <h2>Noch nichts erledigt</h2>
-          <p>Abgehakte Aufgaben landen hier.</p>
+          <h2>{{ 'todos.emptyDoneTitle' | transloco }}</h2>
+          <p>{{ 'todos.emptyDoneText' | transloco }}</p>
         }
       </section>
     } @else {
@@ -121,7 +129,7 @@
                   slot="start"
                   [checked]="todo.done"
                   (ionChange)="toggle(todo)"
-                  [attr.aria-label]="todo.done ? 'Als offen markieren' : 'Als erledigt markieren'"
+                  [attr.aria-label]="(todo.done ? 'todos.markOpen' : 'todos.markDone') | transloco"
                 />
                 <ion-label class="todo-text" (click)="edit(todo)">
                   <span class="todo-title">{{ todo.title }}</span>
@@ -135,16 +143,16 @@
                           [class.today]="state === 'today'"
                         >
                           <ion-icon name="calendar-outline" />
-                          {{ todo.dueDate | date: 'EE, d. MMM' }}
+                          {{ todo.dueDate | date: ('todos.dateFormat' | transloco) : undefined : language.current() }}
                           @if (todo.dueTime) {
-                            · {{ todo.dueTime }} Uhr
+                            · {{ 'todos.dueTime' | transloco: { time: todo.dueTime } }}
                           }
                         </span>
                       }
                       @if (todo.notes) {
                         <span class="chip">
                           <ion-icon name="document-text-outline" />
-                          Notiz
+                          {{ 'todos.note' | transloco }}
                         </span>
                       }
                     </span>
@@ -172,7 +180,7 @@
           expand="block"
           (click)="clearCompleted()"
         >
-          Erledigte löschen
+          {{ 'todos.clearDone' | transloco }}
         </ion-button>
       }
     }
