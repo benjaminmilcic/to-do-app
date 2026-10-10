@@ -20,6 +20,7 @@ import { AuthService } from '../core/auth.service';
 import { ClientConfigService } from '../core/client-config.service';
 import { errorMessageKey } from '../shared/error-message';
 import { LanguageSwitchComponent } from '../shared/language-switch.component';
+import { ThemeSwitchComponent } from '../shared/theme-switch.component';
 
 type Mode = 'login' | 'register';
 
@@ -40,6 +41,7 @@ type Mode = 'login' | 'register';
     IonSpinner,
     IonText,
     LanguageSwitchComponent,
+    ThemeSwitchComponent,
     TranslocoPipe,
   ],
 })

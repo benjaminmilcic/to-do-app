@@ -45,6 +45,7 @@ export interface SegmentOption<T extends string> {
     </div>
   `,
   styles: `
+    /* Segment width: --segment-width, set by a parent if needed (default 44px). */
     :host {
       display: inline-block;
     }
@@ -52,7 +53,7 @@ export interface SegmentOption<T extends string> {
     .switch {
       position: relative;
       display: grid;
-      grid-auto-columns: 44px;
+      grid-auto-columns: var(--segment-width, 44px);
       grid-auto-flow: column;
       padding: 3px;
       border-radius: 999px;
@@ -63,7 +64,7 @@ export interface SegmentOption<T extends string> {
       position: absolute;
       top: 3px;
       left: 3px;
-      width: 44px;
+      width: var(--segment-width, 44px);
       height: calc(100% - 6px);
       border-radius: 999px;
       background: var(--ion-color-primary);
