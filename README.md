@@ -30,6 +30,9 @@
 - **PWA** – installable on the desktop, runs in its own window without
   browser UI, works offline with the last known list.
 - **Android app** – the same code base packaged with Capacitor.
+- **Update hints** – the PWA offers to reload as soon as a new deployment is
+  downloaded; the Android app compares its build number with
+  `/downloads/version.json` and offers the new APK.
 - Due dates, notes, drag & drop ordering, undo for deletions, dark mode.
 
 ## Tech stack
