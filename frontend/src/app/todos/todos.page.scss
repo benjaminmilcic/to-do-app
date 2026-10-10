@@ -248,3 +248,8 @@ ion-popover.account-popover {
     margin-inline-start: 8px;
   }
 }
+
+// See the comment at <ion-footer> in the template: takes no space itself.
+.safe-area-spacer {
+  height: 0;
+}
