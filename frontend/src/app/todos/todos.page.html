@@ -16,8 +16,8 @@
               : 'Offline'
         "
       ></span>
-      <ion-button id="account-trigger" aria-label="Konto">
-        <ion-avatar slot="icon-only" class="avatar">
+      <ion-button id="account-trigger" class="account-button" aria-label="Konto">
+        <ion-avatar class="avatar">
           @if (auth.user()?.avatarUrl; as url) {
             <img [src]="url" alt="" referrerpolicy="no-referrer" />
           } @else {
