@@ -68,7 +68,9 @@ to-do-app/
 ## Getting started (local development)
 
 Requirements: Node.js 24, npm, a MySQL 8 database. For the Android app
-additionally Android Studio (JDK + Android SDK).
+additionally Android Studio (Android SDK) and a JDK 21. Gradle picks the
+JDK 21 itself (see `frontend/android/gradle/gradle-daemon-jvm.properties`),
+even if Android Studio bundles a newer Java, which Gradle 8.14 cannot use.
 
 ### 1. Backend
 
@@ -171,17 +173,17 @@ will not work for you as they are. If you fork or clone this repository,
 | --------------------- | --------------------------------------------------------------- |
 | `deploy-backend.yml`  | Tests, builds and uploads the backend, restarts the service, health check |
 | `deploy-frontend.yml` | Builds the PWA, uploads it, purges the Cloudflare cache for unhashed files, verifies the live version |
-| `build-apk.yml`       | Builds the signed APK on a **self-hosted Windows runner** with Android Studio and uploads it to the download directory |
+| `build-apk.yml`       | Builds the signed APK on a GitHub-hosted runner, verifies the signature and uploads it to the download directory |
 
 They expect hard-coded host names and paths plus these secrets/variables:
 
 - Secrets: `DEPLOY_SSH_KEY`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_PURGE_TOKEN`,
-  `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`
-- Variables: `ANDROID_KEYSTORE_FILE`, `ANDROID_KEY_ALIAS`
+  `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`
+- Variables: `ANDROID_KEY_ALIAS`
 
-`build-apk.yml` stays queued forever without a self-hosted runner labelled
-`android`. It never runs for pull requests, so code from forks cannot reach a
-self-hosted runner.
+`ANDROID_KEYSTORE_BASE64` is the release keystore encoded as base64, e.g.
+`base64 -w0 release.jks` (Linux) or
+`[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.jks"))` (PowerShell).
 
 ## API overview
 
