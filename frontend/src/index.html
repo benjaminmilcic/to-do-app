@@ -10,9 +10,13 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2fb" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f0e17" />
+    <!-- No viewport-fit=cover: with it, Capacitor 8 on Android WebView >= 140
+         draws the app under the system bars and the scrolled list runs under
+         the navigation bar. Without it, Capacitor keeps the app between the
+         bars on every WebView version. -->
     <meta
       name="viewport"
-      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
