@@ -64,8 +64,10 @@ export class SyncService {
         setTimeout(() => socket.connect(), 2_000);
       }
     });
+    // 'connecting' is only shown for the very first attempt. The automatic
+    // retries while offline keep the status at 'offline' until one of them
+    // succeeds - otherwise the offline hint would blink with every retry.
     socket.on('connect_error', () => this.status.set('offline'));
-    socket.io.on('reconnect_attempt', () => this.status.set('connecting'));
 
     // The server rejected the token: refresh it, then reconnect.
     socket.on('auth:error', () => {
